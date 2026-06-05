@@ -41,6 +41,17 @@
   --warning: oklch(0.75 0.18 55);
 }
 
+@keyframes scroll-left {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.animate-scroll-left {
+  animation: scroll-left 25s linear infinite;
+  display: flex;
+  width: max-content;
+}
+
+
 .dark {
   --background: oklch(0.09 0.005 260);
   --foreground: oklch(0.95 0 0);
@@ -127,5 +138,37 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Template animation keyframes and utilities (marquee, fade-in, helpers) */
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes marquee-vertical {
+  0% { transform: translateY(0%); }
+  100% { transform: translateY(-50%); }
+}
+
+@keyframes fade-in {
+  0% { opacity: 0; transform: translateY(6px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@layer utilities {
+  .animate-in {
+    animation-name: fade-in;
+    animation-duration: var(--tw-duration, 700ms);
+    animation-fill-mode: both;
+  }
+
+  .bg-linear-to-t {
+    background-image: linear-gradient(to top, var(--color-background), transparent);
+  }
+
+  .bg-linear-to-b {
+    background-image: linear-gradient(to bottom, var(--color-background), transparent);
   }
 }

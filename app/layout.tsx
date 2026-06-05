@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { DM_Sans, JetBrains_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
+import Providers from './providers'
 
 const _dmSans = DM_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700"] });
 const _jetbrainsMono = JetBrains_Mono({ subsets: ["latin"] });
@@ -36,9 +37,9 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={`font-sans antialiased`}>
-        {children}
+        <Providers>{children}</Providers>
         <Analytics />
       </body>
     </html>
