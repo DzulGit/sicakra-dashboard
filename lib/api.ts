@@ -1,25 +1,26 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+// Sesuaikan dengan PORT NestJS lu (misal 3000)
+const NESTJS_API_URL = "http://localhost:3000";
 
-export async function loginAdmin(email: string, password: string) {
-  const res = await fetch(`${API_URL}/auth/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password }),
+export async function loginAdmin(email: string, password: string, role: string) {
+  const res = await fetch(`${NESTJS_API_URL}/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    // Pastikan role dikirim dan di-uppercase agar cocok dengan Enum Prisma
+    body: JSON.stringify({ email, password, role: role.toUpperCase() }),
   });
 
-  const data = await res.json();
-
   if (!res.ok) {
-    throw new Error(data.message || 'Email atau password salah');
+    const errorData = await res.json();
+    throw new Error(errorData.message || "Gagal login");
   }
 
-  return data as {
-    accessToken: string;
-    admin: {
-      id: string;
-      name: string;
-      email: string;
-      role: 'OPERASIONAL' | 'KEUANGAN' | 'TEKNIS';
-    };
-  };
+  return res.json();
+}
+
+export async function fetchSystemStatus() {
+  const res = await fetch(`${NESTJS_API_URL}/system-status`);
+  if (!res.ok) throw new Error("Gagal mengambil status");
+  
+  const data = await res.json();
+  return data.status; // Array string untuk marquee
 }
