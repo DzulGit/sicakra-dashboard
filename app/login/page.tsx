@@ -20,7 +20,7 @@ function AdminLoginForm() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const submit = (e) => {
+  const submit = (e: { preventDefault: () => void }) => {
     e.preventDefault()
     setLoading(true)
     // Replace with real auth flow
