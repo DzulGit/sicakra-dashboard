@@ -1,9 +1,9 @@
 "use client"
 
 import dynamic from "next/dynamic"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { loginAdmin } from "@/lib/api"
+import { loginAdmin, fetchSystemStatus } from "@/lib/api"
 import { saveAuth } from "@/lib/auth"
 import { Loader2 } from "lucide-react"
 
@@ -28,7 +28,7 @@ function AdminLoginForm() {
     try {
       const { accessToken, admin } = await loginAdmin(email, password, role)
       saveAuth(accessToken, admin)
-      router.push('/')
+      router.push(`/dashboard/${admin.role.toLowerCase()}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Terjadi kesalahan')
     } finally {
@@ -39,24 +39,24 @@ function AdminLoginForm() {
   return (
     <form
       onSubmit={submit}
-      className="w-[380px] rounded-2xl bg-background/40 backdrop-blur-md border border-white/10 p-8 shadow-2xl text-left"
+      className="w-full max-w-[400px] rounded-2xl bg-background/40 backdrop-blur-md border border-white/10 p-8 shadow-2xl text-left"
     >
-      <div className="mb-5">
-        <div className="text-2xl font-semibold text-foreground">Admin Login</div>
-        <p className="text-sm text-muted-foreground">Sicakra Dashboard</p>
+      <div className="mb-6">
+        <div className="text-2xl font-semibold text-foreground">Autentikasi</div>
+        <p className="text-sm text-muted-foreground mt-1">Masuk untuk melanjutkan ke sistem</p>
       </div>
 
       <div className="space-y-4">
         <div>
-          <label className="text-xs text-muted-foreground block mb-1.5">Role</label>
-          <select
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
+          <label className="text-xs text-muted-foreground block mb-1.5">Role Akses</label>
+          <select 
+            value={role} 
+            onChange={(e) => setRole(e.target.value)} 
             className="w-full h-10 rounded px-3 bg-input text-foreground border border-border focus:outline-none focus:ring-2 focus:ring-ring/50"
           >
-            <option>Teknis</option>
-            <option>Keuangan</option>
-            <option>Operasional</option>
+            <option value="Teknis">Teknis</option>
+            <option value="Keuangan">Keuangan</option>
+            <option value="Operasional">Operasional</option>
           </select>
         </div>
 
@@ -87,7 +87,7 @@ function AdminLoginForm() {
         </div>
 
         {error && (
-          <div className="p-3 rounded bg-destructive/10 border border-destructive/20 text-sm text-destructive">
+          <div className="p-3 rounded bg-destructive/10 border border-destructive/20 text-sm text-destructive animate-shake">
             {error}
           </div>
         )}
@@ -95,10 +95,10 @@ function AdminLoginForm() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full h-11 mt-2 rounded bg-white text-black font-semibold flex items-center justify-center gap-2 disabled:opacity-70 transition-opacity"
+          className="w-full h-11 mt-4 rounded bg-white text-black font-semibold flex items-center justify-center gap-2 disabled:opacity-70 transition-opacity"
         >
           {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-          {loading ? 'Masuk...' : 'Login Dashboard'}
+          {loading ? 'Memverifikasi...' : 'Masuk Dashboard'}
         </button>
       </div>
     </form>
@@ -106,49 +106,99 @@ function AdminLoginForm() {
 }
 
 export default function Page() {
+  const [marqueeTexts, setMarqueeTexts] = useState<string[]>([])
+
+  useEffect(() => {
+    async function loadStatus() {
+      try {
+        const data = await fetchSystemStatus()
+        setMarqueeTexts(data)
+      } catch (err) {
+        setMarqueeTexts(["⚠️ Sistem pemantauan sedang offline"])
+      }
+    }
+    loadStatus()
+  }, [])
+
   return (
-    <>
-      <main className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden py-12 px-4">
-        <div className="absolute inset-0 -z-20">
-          <DotMatrix
-            variant="diamond"
-            pixelSize={3}
-            patternScale={1}
-            enableRipples={true}
-            rippleIntensityScale={1.5}
-            rippleSpeed={0.4}
-            speed={1.5}
-            edgeFade={0.15}
-          />
-        </div>
+    // Menggunakan h-screen dan overflow-hidden agar 100% pas di layar tanpa scroll
+    <main className="h-screen w-full relative overflow-hidden flex flex-col items-center justify-center">
+      
+      {/* Background Animasi Dot Matrix */}
+      <div className="absolute inset-0 -z-20">
+        <DotMatrix
+          variant="diamond"
+          pixelSize={3}
+          patternScale={1}
+          enableRipples={true}
+          rippleIntensityScale={1.5}
+          rippleSpeed={0.4}
+          speed={1.5}
+          edgeFade={0.15}
+        />
+      </div>
 
-        <div className="max-w-6xl w-full text-center space-y-10 animate-in fade-in duration-700">
-          <div className="space-y-8 flex flex-col items-center">
-
+      {/* Kontainer Utama: Grid 2 Kolom (kiri teks, kanan form) */}
+      <div className="w-full max-w-6xl px-6 md:px-12 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-8 items-center animate-in fade-in duration-700 z-10 flex-1">
+        
+        {/* Kolom Kiri: Copywriting & Visual */}
+        <div className="space-y-8 text-left hidden md:block">
+          <div className="space-y-4">
             <h1 className="text-5xl md:text-7xl font-serif italic tracking-tight text-balance leading-[0.95]">
               Sicakra
               <br />
-              <span className="text-muted-foreground">Admin Dashboard</span>
+              <span className="text-muted-foreground">Workspace</span>
             </h1>
-
-            <p className="text-sm md:text-base text-muted-foreground max-w-md mx-auto text-balance leading-relaxed">
-              Kelola pendaftaran, paket, dan pelanggan Sicakra WiFi dengan cepat dan mudah.
+            <p className="text-base md:text-lg text-muted-foreground max-w-md leading-relaxed">
+              Pusat kendali operasional terpadu. Kelola infrastruktur jaringan, pendaftaran pelanggan, dan administrasi keuangan dalam satu platform.
             </p>
           </div>
 
-          <div className="w-full flex justify-center">
-            <div className="relative w-[400px] flex items-center justify-center">
-              <AdminLoginForm />
+          {/* List estetis untuk mempercantik UI */}
+          <div className="flex flex-col gap-4 pt-2">
+            <div className="flex items-center gap-3 text-sm text-muted-foreground/80">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
+              Real-time System Monitoring
             </div>
-          </div>
-
-          <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">Trusted by teams at leading companies</p>
-            <div className="animate-marquee-custom flex gap-6 items-center">
+            <div className="flex items-center gap-3 text-sm text-muted-foreground/80">
+              <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]"></div>
+              Role-based Access Control
+            </div>
+            <div className="flex items-center gap-3 text-sm text-muted-foreground/80">
+              <div className="w-2 h-2 rounded-full bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.5)]"></div>
+              End-to-End Encryption
             </div>
           </div>
         </div>
-      </main>
-    </>
+
+        {/* Kolom Kanan: Form Login */}
+        <div className="flex justify-center lg:justify-end items-center w-full">
+          <AdminLoginForm />
+        </div>
+      </div>
+
+      {/* Marquee Teks Berjalan di Absolute Bottom (Nempel Bawah Layar) */}
+      <div className="absolute bottom-0 w-full border-t border-white/5 bg-background/20 backdrop-blur-sm py-3">
+        <div className="flex overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
+          {marqueeTexts.length > 0 && (
+            <div className="animate-marquee-custom flex min-w-full shrink-0 gap-8 items-center">
+              {[...Array(2)].map((_, i) => (
+                <div key={i} className="flex gap-8 items-center whitespace-nowrap">
+                  {marqueeTexts.map((text, idx) => (
+                    <div key={idx} className="flex items-center gap-8">
+                      <span className="text-xs font-medium text-muted-foreground/70 tracking-wide">
+                        {text}
+                      </span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-white/10"></span>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+    </main>
   )
 }
