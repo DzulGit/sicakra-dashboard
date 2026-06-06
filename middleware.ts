@@ -1,16 +1,26 @@
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
-const isPublicRoute = createRouteMatcher(['/login', '/sign-up'])
+const PUBLIC_PATHS = ['/login'];
 
-export default clerkMiddleware(async (auth, request) => {
-  if (!isPublicRoute(request)) {
-    await auth.protect()
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Skip public paths
+  if (PUBLIC_PATHS.some((path) => pathname.startsWith(path))) {
+    return NextResponse.next();
   }
-})
+
+  // Cek token di cookie (kita akan set cookie saat login)
+  const token = request.cookies.get('sicakra_token')?.value;
+
+  if (!token) {
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
+
+  return NextResponse.next();
+}
 
 export const config = {
-  matcher: [
-    '/((?!_next|[^?]*\\.[\\w]+$|_next/image|_next/video|favicon.ico|sitemap.xml|robots.txt).*)',
-    '/(api|trpc)(.*)',
-  ],
-}
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|icon.svg).*)'],
+};
