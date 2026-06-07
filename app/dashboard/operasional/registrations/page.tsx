@@ -6,12 +6,13 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-// KITA GANTI DIALOG JADI SHEET BUAT PANEL KANAN
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet"
-import { Registration } from "@/lib/registrations" // Pastikan interface lu masih ada di sini
-import { fetchRegistrations, processRegistration } from "@/lib/registrations" // Import fungsi API lu
+import { Registration } from "@/lib/registrations" 
+import { fetchRegistrations, processRegistration } from "@/lib/registrations" 
+import { useAuth } from "@clerk/nextjs" // 👈 IMPORT PASUKAN CLERK
 
 export default function RegistrationsPage() {
+  const { getToken } = useAuth() // 👈 AMBIL FUNGSI UNTUK GENERATE TOKEN REAL
   const [loading, setLoading] = useState(true) 
   const [selectedReg, setSelectedReg] = useState<Registration | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
@@ -32,9 +33,13 @@ export default function RegistrationsPage() {
     setIsProcessing(true)
 
     try {
-      await processRegistration("dummy-token", selectedReg.id, { 
+      // 1. Ambil token asimetris dari Clerk dengan template nestjs
+      const token = await getToken({ template: 'nestjs' })
+
+      // 2. Kirim token asli ke fungsi API
+      await processRegistration(token || "", selectedReg.id, { 
         status: status,
-        rejectReason: status === "REJECTED" ? rejectReason : undefined // 👈 Kirim alasannya ke backend
+        rejectReason: status === "REJECTED" ? rejectReason : undefined 
       })
 
       // Jika sukses, reset semua state ke posisi awal
@@ -53,8 +58,11 @@ export default function RegistrationsPage() {
   const loadData = async () => {
     setLoading(true)
     try {
-      // Panggil API (Kita masukin "dummy-token" karena Guard lu masih di-comment kan?)
-      const data = await fetchRegistrations("dummy-token")
+      // 1. Ambil token asimetris dari Clerk dengan template nestjs
+      const token = await getToken({ template: 'nestjs' })
+
+      // 2. Jalankan fetch data dengan token asli
+      const data = await fetchRegistrations(token || "")
       setRegistrations(data)
     } catch (err) {
       console.error("Gagal load registrations", err)
@@ -152,7 +160,6 @@ export default function RegistrationsPage() {
 
       {/* PANEL KANAN RAKSASA (SHEET) */}
       <Sheet open={!!selectedReg} onOpenChange={(open) => !open && setSelectedReg(null)}>
-        {/* sm:max-w-2xl bikin lebarnya puas banget sampe tengah layar */}
         <SheetContent side="right" className="w-full sm:max-w-2xl flex flex-col p-0 overflow-hidden bg-background">
           
           <div className="p-6 border-b">
