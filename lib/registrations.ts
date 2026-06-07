@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:3000/registrations";
+const API_URL = "http://127.0.0.1:3000/registrations";
 
 // 1. Sesuaikan Interface dengan Prisma Schema lu
 export interface Registration {
@@ -36,27 +36,36 @@ export interface Registration {
 
 export async function fetchRegistrations(token: string, status?: string): Promise<Registration[]> {
   const url = status ? `${API_URL}?status=${status}` : API_URL;
-  const res = await fetch(url, {
-    headers: { "Authorization": `Bearer ${token}` }
-  });
   
-  if (!res.ok) throw new Error("Gagal mengambil data pendaftaran");
-  
-  const text = await res.text();
-  if (!text) return [];
-  
-  const parsed = JSON.parse(text);
-  
-  // 👇 INI KUNCINYA: Kita intip apa sih isi asli dari backend lu!
-  console.log("🚨 HASIL DARI BACKEND:", parsed); 
-  
-  // Kita coba tangkap semua kemungkinan format bungkusannya:
-  if (Array.isArray(parsed)) return parsed; // Kalau langsung array
-  if (parsed.data && Array.isArray(parsed.data)) return parsed.data; // Kalau dibungkus "data"
-  if (parsed.items && Array.isArray(parsed.items)) return parsed.items; // Kalau dibungkus "items"
-  if (parsed.result && Array.isArray(parsed.result)) return parsed.result; // Kalau dibungkus "result"
-  
-  return []; // Kalau gagal semua, balikin array kosong
+  try {
+    const res = await fetch(url, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    
+    // 1. KITA BACA RAW TEKSNYA DULU (Biar kebal dari error JSON)
+    const text = await res.text();
+    console.log("🚨 TEKS ASLI DARI BACKEND:", text); // 👈 Cek console browser nanti!
+    
+    // Kalau error dari backend (misal 401, 500)
+    if (!res.ok) {
+      console.error("Backend Error Status:", res.status);
+      return []; 
+    }
+    
+    // Kalau backend ngirim kosong melompong
+    if (!text || text.trim() === "") {
+      console.warn("Peringatan: Backend tidak mengirim data apa-apa (Blank)!");
+      return [];
+    }
+
+    // Kalau aman, baru kita parse
+    const responseData = JSON.parse(text);
+    return responseData.data || responseData || []; 
+    
+  } catch (error) {
+    console.error("Gagal nge-fetch atau parse:", error);
+    return [];
+  }
 }
 
 export async function processRegistration(

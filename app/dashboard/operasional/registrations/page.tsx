@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { CheckCircle, XCircle, Loader2, MapPin, User, Phone, Search, Building, FileText, Map, Briefcase, CreditCard } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -9,40 +9,13 @@ import { Badge } from "@/components/ui/badge"
 // KITA GANTI DIALOG JADI SHEET BUAT PANEL KANAN
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet"
 import { Registration } from "@/lib/registrations" // Pastikan interface lu masih ada di sini
+import { fetchRegistrations, processRegistration } from "@/lib/registrations" // Import fungsi API lu
 
 export default function RegistrationsPage() {
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true) 
   const [selectedReg, setSelectedReg] = useState<Registration | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
-
-  // DATA DUMMY TETEP KITA PAKAI DULU BIAR LU BISA LIHAT HASIL UI-NYA
-  const [registrations, setRegistrations] = useState<Registration[]>([
-    {
-      id: "reg-dummy-123",
-      fullName: "Budi Santoso",
-      phone: "08123456789",
-      email: "budi.santoso@gmail.com",
-      job: "Wiraswasta",
-      ktpNumber: "3271234567890001",
-      address: "Jl. Merdeka No. 45, Komplek Sejahtera",
-      rtRw: "03/05",
-      village: "Sukamaju",
-      district: "Cilodong",
-      city: "Depok",
-      postalCode: "16415",
-      latitude: -6.4025,
-      longitude: 106.8200,
-      mapsUrl: "https://maps.google.com/?q=-6.4025,106.8200",
-      buildingType: "Rumah Pribadi",
-      ownershipStatus: "Milik Sendiri",
-      packageId: "pkg-1",
-      package: { name: "Paket Gamer 50Mbps", price: 250000 },
-      ktpPhotoUrl: "https://via.placeholder.com/400x250?text=Foto+KTP+Dummy",
-      housePhotoUrl: "https://via.placeholder.com/400x300?text=Foto+Rumah+Dummy",
-      status: "PENDING",
-      createdAt: new Date().toISOString(),
-    }
-  ])
+  const [registrations, setRegistrations] = useState<Registration[]>([])
 
   // Simulasi Proses (Belum nembak API)
   const handleProcess = async (status: "APPROVED" | "REJECTED") => {
@@ -57,9 +30,26 @@ export default function RegistrationsPage() {
     }, 1000)
   }
 
+  const loadData = async () => {
+    setLoading(true)
+    try {
+      // Panggil API (Kita masukin "dummy-token" karena Guard lu masih di-comment kan?)
+      const data = await fetchRegistrations("dummy-token")
+      setRegistrations(data)
+    } catch (err) {
+      console.error("Gagal load registrations", err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const formatDate = (dateString: string) => {
     return new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(dateString))
   }
+
+  useEffect(() => {
+    loadData()
+  }, [])
 
   return (
     <div className="space-y-4">
