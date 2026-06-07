@@ -16,18 +16,38 @@ export default function RegistrationsPage() {
   const [selectedReg, setSelectedReg] = useState<Registration | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [registrations, setRegistrations] = useState<Registration[]>([])
+  const [isRejecting, setIsRejecting] = useState(false)
+  const [rejectReason, setRejectReason] = useState("")
 
-  // Simulasi Proses (Belum nembak API)
+  // Fungsi handleProcess yang asli nembak ke Backend
   const handleProcess = async (status: "APPROVED" | "REJECTED") => {
     if (!selectedReg) return
-    setIsProcessing(true)
     
-    // Simulasi loading 1 detik biar kerasa nyata
-    setTimeout(() => {
-      setRegistrations(prev => prev.map(r => r.id === selectedReg.id ? { ...r, status } : r))
+    // Validasi internal frontend jika menolak tapi alasan kosong
+    if (status === "REJECTED" && !rejectReason.trim()) {
+      alert("Alasan penolakan wajib diisi!")
+      return
+    }
+
+    setIsProcessing(true)
+
+    try {
+      await processRegistration("dummy-token", selectedReg.id, { 
+        status: status,
+        rejectReason: status === "REJECTED" ? rejectReason : undefined // 👈 Kirim alasannya ke backend
+      })
+
+      // Jika sukses, reset semua state ke posisi awal
+      setSelectedReg(null) 
+      setIsRejecting(false)
+      setRejectReason("")
+      loadData()           
+    } catch (err) {
+      console.error("Gagal memproses pendaftaran:", err)
+      alert("Terjadi kesalahan jaringan saat memproses data.")
+    } finally {
       setIsProcessing(false)
-      setSelectedReg(null)
-    }, 1000)
+    }
   }
 
   const loadData = async () => {
@@ -263,20 +283,62 @@ export default function RegistrationsPage() {
           {/* Footer Panel: Tombol Aksi nempel di bawah */}
           <div className="p-6 border-t bg-muted/20">
             {selectedReg?.status === "PENDING" ? (
-              <div className="flex flex-col sm:flex-row gap-3 justify-end w-full">
-                <Button variant="outline" className="sm:mr-auto" onClick={() => setSelectedReg(null)}>Batal</Button>
-                <Button variant="destructive" onClick={() => handleProcess("REJECTED")} disabled={isProcessing}>
-                  {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <XCircle className="mr-2 h-4 w-4" />}
-                  Tolak Pendaftaran
-                </Button>
-                <Button className="bg-emerald-600 hover:bg-emerald-700 text-white" onClick={() => handleProcess("APPROVED")} disabled={isProcessing}>
-                  {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}
-                  Terima & Lanjut Teknis
-                </Button>
+              <div className="flex flex-col gap-4 w-full">
+                
+                {/* JIKA SEDANG MODE MENOLAK: Tampilkan Form Alasan */}
+                {isRejecting ? (
+                  <div className="space-y-2 w-full">
+                    <label className="text-xs font-bold text-destructive uppercase tracking-wider">
+                      Alasan Penolakan (Wajib Diisi)
+                    </label>
+                    <textarea
+                      className="w-full min-h-[80px] p-2 text-sm bg-background border rounded-md border-destructive/50 focus:outline-none focus:ring-1 focus:ring-destructive"
+                      placeholder="Contoh: Wilayah belum tercover jaringan / Tiang ISP penuh..."
+                      value={rejectReason}
+                      onChange={(e) => setRejectReason(e.target.value)}
+                    />
+                    <div className="flex justify-end gap-2">
+                      <Button variant="ghost" size="sm" onClick={() => { setIsRejecting(false); setRejectReason(""); }}>
+                        Batal
+                      </Button>
+                      <Button variant="destructive" size="sm" onClick={() => handleProcess("REJECTED")} disabled={isProcessing || !rejectReason.trim()}>
+                        {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <XCircle className="mr-2 h-4 w-4" />}
+                        Konfirmasi Tolak
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  /* JIKA MODE NORMAL: Tampilkan Tombol Utama */
+                  <div className="flex flex-col sm:flex-row gap-3 justify-end w-full">
+                    <Button variant="outline" className="sm:mr-auto" onClick={() => setSelectedReg(null)}>
+                      Tutup
+                    </Button>
+                    <Button variant="destructive" onClick={() => setIsRejecting(true)}>
+                      <XCircle className="mr-2 h-4 w-4" />
+                      Tolak Pendaftaran
+                    </Button>
+                    <Button className="bg-emerald-600 hover:bg-emerald-700 text-white" onClick={() => handleProcess("APPROVED")} disabled={isProcessing}>
+                      {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}
+                      Terima & Lanjut Teknis
+                    </Button>
+                  </div>
+                )}
+
               </div>
             ) : (
-              <div className="w-full text-center p-3 bg-background border rounded-lg">
-                <p className="text-sm font-medium">Pendaftaran ini sudah diproses dengan status: <Badge variant={selectedReg?.status === "APPROVED" ? "default" : "destructive"} className="ml-2">{selectedReg?.status}</Badge></p>
+              /* JIKA STATUS SUDAH APPROVED / REJECTED */
+              <div className="w-full text-center p-3 bg-background border rounded-lg space-y-2">
+                <p className="text-sm font-medium">
+                  Pendaftaran ini sudah diproses: 
+                  <Badge variant={selectedReg?.status === "APPROVED" ? "default" : "destructive"} className="ml-2">
+                    {selectedReg?.status}
+                  </Badge>
+                </p>
+                {selectedReg?.rejectReason && (
+                  <div className="text-xs text-left text-destructive bg-destructive/10 p-3 rounded-md border border-destructive/20 mt-2">
+                    <span className="font-bold">Alasan Penolakan:</span> {selectedReg.rejectReason}
+                  </div>
+                )}
               </div>
             )}
           </div>
