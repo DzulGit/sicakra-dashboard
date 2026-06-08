@@ -10,10 +10,10 @@ import { RegistrationsFitur } from "@/components/dashboard/fitur/registrations";
 async function fetchRegistrationsData(token: string) {
   try {
     // Di sini lu bisa nembak langsung ke endpoint NestJS lu, misal:
-    // const res = await fetch("http://localhost:3000/registrations", {
-    //   headers: { Authorization: `Bearer ${token}` }
-    // });
-    // return res.json();
+     const res = await fetch("http://localhost:3000/registrations", {
+       headers: { Authorization: `Bearer ${token}` }
+     });
+     return res.json();
     
     return []; // Sementara di-return array kosong jika belum disambungkan ke fetch asli
   } catch (error) {
