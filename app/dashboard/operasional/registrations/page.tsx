@@ -7,23 +7,23 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet"
-import { Registration } from "@/lib/registrations" 
-import { fetchRegistrations, processRegistration } from "@/lib/registrations" 
+import { Registration } from "@/lib/registrations"
+import { fetchRegistrations, processRegistration } from "@/lib/registrations"
 import { useAuth } from "@clerk/nextjs" // 👈 IMPORT PASUKAN CLERK
 
 export default function RegistrationsPage() {
   const { getToken } = useAuth() // 👈 AMBIL FUNGSI UNTUK GENERATE TOKEN REAL
-  const [loading, setLoading] = useState(true) 
+  const [loading, setLoading] = useState(true)
   const [selectedReg, setSelectedReg] = useState<Registration | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [registrations, setRegistrations] = useState<Registration[]>([])
   const [isRejecting, setIsRejecting] = useState(false)
   const [rejectReason, setRejectReason] = useState("")
 
-  // Fungsi handleProcess yang asli nembak ke Backend
+  // Fungsi handleProcess yang baru (Otomatis deteksi nomor WA + isi pesan)
   const handleProcess = async (status: "APPROVED" | "REJECTED") => {
     if (!selectedReg) return
-    
+
     // Validasi internal frontend jika menolak tapi alasan kosong
     if (status === "REJECTED" && !rejectReason.trim()) {
       alert("Alasan penolakan wajib diisi!")
@@ -33,21 +33,51 @@ export default function RegistrationsPage() {
     setIsProcessing(true)
 
     try {
-      // 1. Ambil token asimetris dari Clerk dengan template nestjs
+      // 1. Ambil token asimetris dari Clerk dulu (WAJIB DI ATAS)
       const token = await getToken({ template: 'nestjs' })
 
-      // 2. Kirim token asli ke fungsi API
-      await processRegistration(token || "", selectedReg.id, { 
+      // 2. Kirim variabel token yang udah dibuat ke fungsi API (DI BAWAHNYA)
+      const response = await processRegistration(token || "", selectedReg.id, {
         status: status,
-        rejectReason: status === "REJECTED" ? rejectReason : undefined 
+        rejectReason: status === "REJECTED" ? rejectReason : undefined
       })
 
-      // Jika sukses, reset semua state ke posisi awal
-      setSelectedReg(null) 
+      // 3. JIKA STATUSNYA APPROVED, JALANKAN LOGIKA WHATSAPP
+      if (status === "APPROVED" && response) {
+        const voucherToken = (response as any).accessToken || (response as any).data?.accessToken || "TOKEN-ERROR";
+        const userPassword = selectedReg.phone;
+
+        let formattedPhone = selectedReg.phone.replace(/[^0-9]/g, '');
+        if (formattedPhone.startsWith('0')) {
+          formattedPhone = '62' + formattedPhone.slice(1);
+        }
+
+        const messageTemplate = `Halo Kak *${selectedReg.fullName}*,\n\n` +
+          `Pendaftaran layanan Sicakra WiFi Kakak telah *DISETUJUI*! 🎉\n\n` +
+          `Berikut adalah detail akun resmi Kakak untuk masuk ke aplikasi:\n` +
+          `• *Username (ID Token)*: *${voucherToken}*\n` +
+          `• *Password Sementara*: _Nomor WhatsApp Kakak (${userPassword})_\n\n` +
+          `*⚠️ WAJIB:* Demi keamanan data, setelah berhasil login pertama kali, Kakak *diwajibkan langsung mengganti password* bawaan ini pada halaman profil.\n\n` +
+          `Silakan login melalui link web resmi kami di sini.\n\n` +
+          `Terima kasih telah mempercayai Sicakra WiFi! 🙏`;
+
+        const encodedMessage = encodeURIComponent(messageTemplate);
+        const whatsappUrl = `https://api.whatsapp.com/send?phone=${formattedPhone}&text=${encodedMessage}`;
+
+        window.open(whatsappUrl, '_blank');
+      }
+
+      // Reset state setelah sukses
+      setSelectedReg(null)
       setIsRejecting(false)
       setRejectReason("")
-      loadData()           
+      loadData()
     } catch (err) {
+      // Reset state setelah gagal dan muat ulang tabel data
+      setSelectedReg(null)
+      setIsRejecting(false)
+      setRejectReason("")
+      loadData()
       console.error("Gagal memproses pendaftaran:", err)
       alert("Terjadi kesalahan jaringan saat memproses data.")
     } finally {
@@ -134,7 +164,7 @@ export default function RegistrationsPage() {
                     </TableCell>
                     <TableCell>
                       <span className="font-medium text-sm">
-                        {reg.package?.name || "Paket ID: " + reg.packageId.substring(0,8)}
+                        {reg.package?.name || "Paket ID: " + reg.packageId.substring(0, 8)}
                       </span>
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
@@ -161,7 +191,7 @@ export default function RegistrationsPage() {
       {/* PANEL KANAN RAKSASA (SHEET) */}
       <Sheet open={!!selectedReg} onOpenChange={(open) => !open && setSelectedReg(null)}>
         <SheetContent side="right" className="w-full sm:max-w-2xl flex flex-col p-0 overflow-hidden bg-background">
-          
+
           <div className="p-6 border-b">
             <SheetHeader>
               <SheetTitle className="text-2xl">Detail Lengkap Pendaftaran</SheetTitle>
@@ -170,7 +200,7 @@ export default function RegistrationsPage() {
               </SheetDescription>
             </SheetHeader>
           </div>
-          
+
           {/* Area konten yang bisa di-scroll */}
           <div className="flex-1 overflow-y-auto p-6 space-y-8">
             {selectedReg && (
@@ -186,7 +216,7 @@ export default function RegistrationsPage() {
                       <p className="font-medium">{selectedReg.fullName}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1"><CreditCard className="w-3 h-3"/> No. KTP (NIK)</p>
+                      <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1"><CreditCard className="w-3 h-3" /> No. KTP (NIK)</p>
                       <p className="font-medium">{selectedReg.ktpNumber || "-"}</p>
                     </div>
                     <div>
@@ -198,7 +228,7 @@ export default function RegistrationsPage() {
                       <p className="font-medium">{selectedReg.email}</p>
                     </div>
                     <div className="col-span-2">
-                      <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1"><Briefcase className="w-3 h-3"/> Pekerjaan</p>
+                      <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1"><Briefcase className="w-3 h-3" /> Pekerjaan</p>
                       <p className="font-medium">{selectedReg.job}</p>
                     </div>
                   </div>
@@ -239,11 +269,11 @@ export default function RegistrationsPage() {
                   {/* Info Bangunan */}
                   <div className="bg-muted/30 p-4 rounded-lg border grid grid-cols-2 gap-4 mt-2">
                     <div>
-                      <p className="text-xs text-muted-foreground flex items-center gap-1 mb-1"><Building className="w-3 h-3"/> Tipe Bangunan</p>
+                      <p className="text-xs text-muted-foreground flex items-center gap-1 mb-1"><Building className="w-3 h-3" /> Tipe Bangunan</p>
                       <p className="font-semibold">{selectedReg.buildingType}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-muted-foreground flex items-center gap-1 mb-1"><User className="w-3 h-3"/> Status Kepemilikan</p>
+                      <p className="text-xs text-muted-foreground flex items-center gap-1 mb-1"><User className="w-3 h-3" /> Status Kepemilikan</p>
                       <p className="font-semibold">{selectedReg.ownershipStatus}</p>
                     </div>
                     <div className="col-span-2 border-t pt-3 mt-1">
@@ -291,7 +321,7 @@ export default function RegistrationsPage() {
           <div className="p-6 border-t bg-muted/20">
             {selectedReg?.status === "PENDING" ? (
               <div className="flex flex-col gap-4 w-full">
-                
+
                 {/* JIKA SEDANG MODE MENOLAK: Tampilkan Form Alasan */}
                 {isRejecting ? (
                   <div className="space-y-2 w-full">
@@ -336,7 +366,7 @@ export default function RegistrationsPage() {
               /* JIKA STATUS SUDAH APPROVED / REJECTED */
               <div className="w-full text-center p-3 bg-background border rounded-lg space-y-2">
                 <p className="text-sm font-medium">
-                  Pendaftaran ini sudah diproses: 
+                  Pendaftaran ini sudah diproses:
                   <Badge variant={selectedReg?.status === "APPROVED" ? "default" : "destructive"} className="ml-2">
                     {selectedReg?.status}
                   </Badge>
