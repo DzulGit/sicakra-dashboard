@@ -45,7 +45,7 @@ const ALL_FEATURES = [
   {
     id: "billing",
     label: "Tagihan Pelanggan",
-    href: "/dashboard/keuangan", // Menuju folder keuangan nanti
+    href: "/dashboard/keuangan/billing", // Menuju folder keuangan nanti
     icon: Wallet,
     allowedRoles: ["SUPER_ADMIN", "KEUANGAN"],
   },

@@ -3,6 +3,8 @@
 import { useState } from "react"
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { Header } from "@/components/dashboard/header"
+import { useSession } from "@clerk/nextjs" // 👈 1. Ganti menjadi useSession
+import type { AdminRole } from "@/components/dashboard/sidebar"
 
 export default function DashboardLayout({
   children,
@@ -12,19 +14,25 @@ export default function DashboardLayout({
   const [activeSection, setActiveSection] = useState<any>("overview")
   const [collapsed, setCollapsed] = useState(false)
 
+  // 🔐 2. Ambil session aktif untuk membaca JWT Claims Token
+  const { session } = useSession()
+  
+  // 3. Baca metadata role langsung dari claims (Sama persis dengan server-side)
+  const userRole = ((session as any)?.claims?.metadata?.role || "OPERASIONAL") as AdminRole
+
+  // 🛠️ DEBUGGING: Buka F12 (Inspect Element) di browser lu untuk mastiin string role dari Clerk
+  console.log("INFO-SICAKRA: Role terdeteksi di browser saat ini ->", userRole);
+
   return (
     <div className="flex min-h-screen w-full bg-background">
       
-      {/* UPDATE SIDEBAR DI SINI */}
+      {/* SIDEBAR ASLI LU (TIDAK BERUBAH) */}
       <Sidebar 
-        role="OPERASIONAL" // 👈 UTAMA: Ganti string ini jadi "OPERASIONAL" atau "TEKNIS" buat ngetes perubahannya
+        role={userRole} // 👈 Sekarang filtrasinya dijamin akurat mengikuti session token
         collapsed={collapsed}
         onCollapsedChange={setCollapsed}
       />
       
-      {/* Kita pakai padding-left (pl) untuk ngedorong konten. 
-        Kalau collapsed (dilipat) paddingnya 80px, kalau kebuka paddingnya 280px.
-      */}
       <div 
         className={`flex flex-col flex-1 w-full transition-all duration-300 ${
           collapsed ? "md:pl-[70px]" : "md:pl-[240px] lg:pl-[260px]"
