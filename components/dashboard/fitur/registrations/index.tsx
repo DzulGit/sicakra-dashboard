@@ -19,7 +19,6 @@ export function RegistrationsFitur({
   onRefresh,
 }: RegistrationsFiturProps) {
   
-  // Minta bantuan hook pintar untuk mengelola seluruh status dan logic WhatsApp
   const {
     data,
     selectedReg,
@@ -34,7 +33,7 @@ export function RegistrationsFitur({
 
   return (
     <div className="space-y-6">
-      {/* 1. Header Judul Fitur */}
+      {/* Header Judul */}
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-foreground">
           Manajemen Pendaftaran Pelanggan
@@ -45,32 +44,26 @@ export function RegistrationsFitur({
         </p>
       </div>
 
-      {/* 2. Grid Layout Responsive (Kiri Tabel, Kanan Panel Detail) */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 items-start">
-        
-        {/* Kolom Tabel Pelanggan (Makan area 2/3 layar lebar) */}
-        <div className="lg:col-span-2">
-          <RegistrationTable
-            data={data}
-            selectedRegId={selectedReg?.id || null}
-            onSelectRow={setSelectedReg}
-          />
-        </div>
-
-        {/* Kolom Detail & Panel Aksi WhatsApp (Makan area 1/3 layar kanan) */}
-        <div className="lg:col-span-1">
-          <RegistrationDetail
-            selectedReg={selectedReg}
-            isProcessing={isProcessing}
-            isRejecting={isRejecting}
-            setIsRejecting={setIsRejecting}
-            rejectReason={rejectReason}
-            setRejectReason={setRejectReason}
-            onProcess={(status) => handleProcess(status, apiProcessFn)}
-          />
-        </div>
-        
+      {/* 🔄 KEMBALI FULL WIDTH: Tabel mengambil ruang penuh layar */}
+      <div className="w-full">
+        <RegistrationTable
+          data={data}
+          selectedRegId={selectedReg?.id || null}
+          onSelectRow={setSelectedReg}
+        />
       </div>
+
+      {/* 🔄 DRAWER INTERAKTIF: Mengambang di atas konten saat baris diklik */}
+      <RegistrationDetail
+        selectedReg={selectedReg}
+        onClose={() => setSelectedReg(null)} // Menutup drawer saat klik silang / luar
+        isProcessing={isProcessing}
+        isRejecting={isRejecting}
+        setIsRejecting={setIsRejecting}
+        rejectReason={rejectReason}
+        setRejectReason={setRejectReason}
+        onProcess={(status) => handleProcess(status, apiProcessFn)}
+      />
     </div>
   );
 }
