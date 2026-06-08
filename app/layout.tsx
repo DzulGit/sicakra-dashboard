@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import { DM_Sans, JetBrains_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
-import Providers from './providers'
+import Providers from './providers' // Komponen provider lu
 
 const _dmSans = DM_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700"] });
 const _jetbrainsMono = JetBrains_Mono({ subsets: ["latin"] });
@@ -31,18 +31,20 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    //
-    <html lang="en" suppressHydrationWarning>
-      <body className={`font-sans antialiased`}>
-        <Providers>{children}</Providers>
+    <html lang="id" suppressHydrationWarning>
+      {/* 1. Tempelkan font kelas _dmSans ke body agar tampilan teks dashboard lu estetik */}
+      <body className={_dmSans.className}>
+        
+        {/* 2. DISINI KUNCINYA: Bungkus dengan <Providers> agar Clerk & Theme aktif secara global */}
+        <Providers>
+          {children}
+        </Providers>
+
+        {/* 3. Sekalian gua pasang Analytics vercel-nya karena sayang udah lu import */}
         <Analytics />
       </body>
     </html>
-  )
+  );
 }

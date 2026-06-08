@@ -2,11 +2,11 @@
 
 import React from "react";
 import { cn } from "@/lib/utils";
-import { X, MapPin, Home, Image as ImageIcon } from "lucide-react";
+import { X, MapPin, Home, Image as ImageIcon, User, Briefcase, Mail, Phone } from "lucide-react";
 
 interface RegistrationDetailProps {
   selectedReg: any | null;
-  onClose: () => void; // Fungsi untuk menutup panel
+  onClose: () => void;
   isProcessing: boolean;
   isRejecting: boolean;
   setIsRejecting: (val: boolean) => void;
@@ -30,7 +30,7 @@ export function RegistrationDetail({
 
   return (
     <>
-      {/* Gelap/Backdrop di latar belakang saat panel kebuka */}
+      {/* Backdrop Latar Belakang */}
       <div
         className={cn(
           "fixed inset-0 z-40 bg-background/60 backdrop-blur-sm transition-opacity duration-300",
@@ -39,10 +39,10 @@ export function RegistrationDetail({
         onClick={onClose}
       />
 
-      {/* Slide-over Panel (Meluncur Mulus dari Samping Kanan) */}
+      {/* 🔄 UKURAN UPGRADE: w-full max-w-lg md:max-w-2xl lg:max-w-3xl (Luas Maksimal!) */}
       <div
         className={cn(
-          "fixed top-0 right-0 z-50 h-screen w-full max-w-md sm:max-w-lg bg-card border-l border-border shadow-2xl transition-transform duration-300 ease-in-out flex flex-col",
+          "fixed top-0 right-0 z-50 h-screen w-full max-w-lg md:max-w-2xl lg:max-w-3xl bg-card border-l border-border shadow-2xl transition-transform duration-300 ease-in-out flex flex-col",
           isOpen ? "translate-x-0" : "translate-x-full"
         )}
       >
@@ -51,8 +51,8 @@ export function RegistrationDetail({
             {/* Header Panel */}
             <div className="flex items-center justify-between p-6 border-b border-border">
               <div>
-                <h3 className="text-lg font-bold text-foreground">Detail Pendaftaran</h3>
-                <p className="text-xs text-muted-foreground">ID Registrasi: {selectedReg.id}</p>
+                <h3 className="text-xl font-bold text-foreground">Informasi Lengkap Berkas Pendaftar</h3>
+                <p className="text-xs text-muted-foreground">Nomor Registrasi Sistem: {selectedReg.id}</p>
               </div>
               <button
                 onClick={onClose}
@@ -62,47 +62,124 @@ export function RegistrationDetail({
               </button>
             </div>
 
-            {/* Konten Scrollable */}
+            {/* Konten Utama Detail (Scrollable) */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
               
-              {/* 📸 BERKAS FOTO FISIK (KTP & RUMAH) YANG KETINGGALAN */}
+              {/* 🗺️ DYNAMIC GOOGLE MAPS LIVE PREVIEW PANEL */}
+              <div className="space-y-2">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Validasi Pemetaan Lokasi G-Maps</h4>
+                <a 
+                  href={selectedReg.mapsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedReg.address)}`}
+                  target="_blank" 
+                  rel="noreferrer"
+                  className="block relative w-full h-64 rounded-2xl border border-border overflow-hidden bg-muted group cursor-pointer shadow-inner"
+                  title="Klik untuk memperbesar dan buka di Google Maps asli"
+                >
+                  {/* Iframe Peta menggunakan query alamat dinamis pelanggan */}
+                  <iframe
+                    title="Sicakra WiFi Live Maps"
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0, pointerEvents: "none" }} // Trik kuncinya di sini biar box utuh bisa diklik gampang
+                    src={`https://maps.google.com/maps?q=${encodeURIComponent(selectedReg.address || "Indonesia")}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+                    allowFullScreen
+                  />
+                  {/* Efek Hover Keren Masking Glass */}
+                  <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/5 transition-colors flex items-center justify-center">
+                    <span className="bg-background/95 text-foreground text-xs font-bold px-4 py-2 rounded-xl shadow-lg border border-border opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-primary animate-bounce" />
+                      Expand & Buka Tab Baru
+                    </span>
+                  </div>
+                </a>
+              </div>
+
+              {/* Grid 2 Kolom untuk Biodata & Berkas Fisik Foto */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                {/* KIRI: Biodata Komplit */}
+                <div className="space-y-4">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Profil & Kontak Pelanggan</h4>
+                  <div className="rounded-2xl border border-border bg-muted/20 p-4 space-y-3.5 text-sm">
+                    <div className="flex items-center gap-3">
+                      <User className="w-4 h-4 text-muted-foreground" />
+                      <div><p className="text-xs text-muted-foreground">Nama Lengkap</p><p className="font-semibold text-foreground">{selectedReg.fullName}</p></div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Phone className="w-4 h-4 text-muted-foreground" />
+                      <div><p className="text-xs text-muted-foreground">No. WhatsApp</p><p className="font-medium text-foreground">{selectedReg.phone}</p></div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Mail className="w-4 h-4 text-muted-foreground" />
+                      <div><p className="text-xs text-muted-foreground">Email Aktif</p><p className="font-medium text-foreground">{selectedReg.email}</p></div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Briefcase className="w-4 h-4 text-muted-foreground" />
+                      <div><p className="text-xs text-muted-foreground">Pekerjaan</p><p className="font-medium text-foreground">{selectedReg.job || "-"}</p></div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* KANAN: Lokasi Detail Alamat */}
+                <div className="space-y-4">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Spesifikasi Domisili</h4>
+                  <div className="rounded-2xl border border-border bg-muted/20 p-4 space-y-3 text-sm h-full">
+                    <p className="border-b border-border/50 pb-2">
+                      <span className="text-xs text-muted-foreground block mb-0.5">Alamat Jalan Lengkap:</span> 
+                      <span className="text-foreground font-semibold">{selectedReg.address}</span>
+                    </p>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div><span className="text-muted-foreground block">RT/RW</span><span className="font-medium text-foreground text-sm">{selectedReg.rtRw}</span></div>
+                      <div><span className="text-muted-foreground block">Kelurahan</span><span className="font-medium text-foreground text-sm">{selectedReg.village}</span></div>
+                      <div><span className="text-muted-foreground block">Kecamatan</span><span className="font-medium text-foreground text-sm">{selectedReg.district}</span></div>
+                      <div><span className="text-muted-foreground block">Tipe Bangunan</span><span className="font-medium text-foreground text-sm">{selectedReg.buildingType}</span></div>
+                    </div>
+                    <p className="pt-2 border-t border-border/50 text-xs">
+                      <span className="text-muted-foreground">Status Kepemilikan:</span> <span className="font-bold text-primary">{selectedReg.ownershipStatus}</span>
+                    </p>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* 📸 BARIS FOTO VALIDASI (KTP & DEPAN RUMAH) */}
               <div className="space-y-3">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Berkas Foto Fisik</h4>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Validasi Fisik Berkas Foto</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   
-                  {/* Container Foto KTP */}
+                  {/* Foto KTP */}
                   <div className="space-y-1.5">
-                    <span className="text-xs font-semibold text-muted-foreground">Foto KTP Pelanggan</span>
-                    <div className="relative aspect-[4/3] rounded-xl border border-border bg-muted/50 overflow-hidden flex items-center justify-center group">
+                    <span className="text-xs font-semibold text-muted-foreground">Kartu Tanda Penduduk (KTP)</span>
+                    <div className="relative aspect-[16/10] rounded-2xl border border-border bg-muted/50 overflow-hidden flex items-center justify-center group shadow-sm">
                       {selectedReg.ktpPhotoUrl || selectedReg.ktpPhoto ? (
                         <img 
                           src={selectedReg.ktpPhotoUrl || selectedReg.ktpPhoto} 
                           alt="Foto KTP" 
-                          className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                         />
                       ) : (
                         <div className="text-center p-4 text-muted-foreground/60">
                           <ImageIcon className="w-8 h-8 mx-auto mb-1 opacity-50" />
-                          <span className="text-xs">Tidak ada file KTP</span>
+                          <span className="text-xs">File KTP Kosong</span>
                         </div>
                       )}
                     </div>
                   </div>
 
-                  {/* Container Foto Depan Rumah */}
+                  {/* Foto Depan Rumah */}
                   <div className="space-y-1.5">
-                    <span className="text-xs font-semibold text-muted-foreground">Foto Depan Rumah</span>
-                    <div className="relative aspect-[4/3] rounded-xl border border-border bg-muted/50 overflow-hidden flex items-center justify-center group">
+                    <span className="text-xs font-semibold text-muted-foreground">Foto Kondisi Depan Rumah</span>
+                    <div className="relative aspect-[16/10] rounded-2xl border border-border bg-muted/50 overflow-hidden flex items-center justify-center group shadow-sm">
                       {selectedReg.housePhotoUrl || selectedReg.housePhoto ? (
                         <img 
                           src={selectedReg.housePhotoUrl || selectedReg.housePhoto} 
-                          alt="Foto Depan Rumah" 
-                          className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
+                          alt="Foto Rumah" 
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                         />
                       ) : (
                         <div className="text-center p-4 text-muted-foreground/60">
                           <Home className="w-8 h-8 mx-auto mb-1 opacity-50" />
-                          <span className="text-xs">Tidak ada file rumah</span>
+                          <span className="text-xs">File Rumah Kosong</span>
                         </div>
                       )}
                     </div>
@@ -111,46 +188,15 @@ export function RegistrationDetail({
                 </div>
               </div>
 
-              {/* Data Biodata */}
+              {/* Paket Pilihan */}
               <div className="space-y-2">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Data Pelanggan</h4>
-                <div className="space-y-2 rounded-xl bg-muted/40 p-4 text-sm">
-                  <p className="flex justify-between"><span className="text-muted-foreground">Nama:</span> <span className="text-foreground font-semibold">{selectedReg.fullName}</span></p>
-                  <p className="flex justify-between"><span className="text-muted-foreground">WhatsApp:</span> <span className="text-foreground font-medium">{selectedReg.phone}</span></p>
-                  <p className="flex justify-between"><span className="text-muted-foreground">Email:</span> <span className="text-foreground font-medium">{selectedReg.email}</span></p>
-                  <p className="flex justify-between"><span className="text-muted-foreground">Pekerjaan:</span> <span className="text-foreground font-medium">{selectedReg.job}</span></p>
-                </div>
-              </div>
-
-              {/* Data Lokasi */}
-              <div className="space-y-2">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Lokasi Pemasangan</h4>
-                <div className="space-y-2 rounded-xl bg-muted/40 p-4 text-sm">
-                  <p><span className="text-muted-foreground block mb-0.5">Alamat:</span> <span className="text-foreground font-medium">{selectedReg.address}, RT/RW {selectedReg.rtRw}</span></p>
-                  <p className="flex justify-between"><span className="text-muted-foreground">Area:</span> <span className="text-foreground font-medium">{selectedReg.village}, {selectedReg.district}</span></p>
-                  <p className="flex justify-between"><span className="text-muted-foreground">Bangunan:</span> <span className="text-foreground font-medium">{selectedReg.buildingType} ({selectedReg.ownershipStatus})</span></p>
-                  {selectedReg.mapsUrl && (
-                    <a 
-                      href={selectedReg.mapsUrl} 
-                      target="_blank" 
-                      rel="noreferrer" 
-                      className="inline-flex items-center gap-1 mt-2 text-xs text-primary font-bold hover:underline"
-                    >
-                      <MapPin className="w-3.5 h-3.5" /> Buka Google Maps Pelanggan
-                    </a>
-                  )}
-                </div>
-              </div>
-
-              {/* Pilihan Paket */}
-              <div className="space-y-2">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Paket Pilihan</h4>
-                <div className="flex items-center justify-between rounded-xl border border-primary/20 bg-primary/5 p-4 text-sm">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Paket Wifi Yang Dipesan</h4>
+                <div className="flex items-center justify-between rounded-2xl border border-primary/20 bg-primary/5 p-4 text-sm">
                   <div>
-                    <p className="font-bold text-foreground">{selectedReg.package?.name || selectedReg.packageName}</p>
-                    <p className="text-xs text-muted-foreground">Harga paket bulanan</p>
+                    <p className="font-bold text-foreground text-base">{selectedReg.package?.name || selectedReg.packageName}</p>
+                    <p className="text-xs text-muted-foreground">Harga paket terikat kontrak langganan</p>
                   </div>
-                  <p className="font-extrabold text-primary text-lg">
+                  <p className="font-black text-primary text-xl">
                     Rp {(selectedReg.package?.price || 0).toLocaleString("id-ID")}
                   </p>
                 </div>
@@ -158,35 +204,35 @@ export function RegistrationDetail({
 
             </div>
 
-            {/* Footer Aksi Pilihan Kelola */}
+            {/* Footer Eksekusi Aksi */}
             {selectedReg.status === "PENDING" && (
               <div className="p-6 border-t border-border bg-card space-y-3">
                 {!isRejecting ? (
-                  <div className="flex gap-3">
+                  <div className="flex gap-4">
                     <button
                       disabled={isProcessing}
                       onClick={() => setIsRejecting(true)}
-                      className="flex-1 py-2.5 rounded-xl text-sm font-semibold border border-rose-200 text-rose-600 hover:bg-rose-50 transition-colors"
+                      className="flex-1 py-3 rounded-xl text-sm font-bold border border-rose-200 text-rose-600 hover:bg-rose-50/70 transition-colors disabled:opacity-50"
                     >
-                      Tolak
+                      Tolak Pendaftaran
                     </button>
                     <button
                       disabled={isProcessing}
                       onClick={() => onProcess("APPROVED")}
-                      className="flex-[2] py-2.5 rounded-xl text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm transition-colors"
+                      className="flex-[2] py-3 rounded-xl text-sm font-bold bg-primary text-primary-foreground hover:bg-primary/90 shadow-md transition-colors disabled:opacity-50"
                     >
-                      {isProcessing ? "Memproses..." : "Terima & Lanjut Teknis"}
+                      {isProcessing ? "Memproses Data..." : "Terima & Lanjut Kirim WA Akun"}
                     </button>
                   </div>
                 ) : (
-                  <div className="space-y-3 rounded-xl border border-rose-100 bg-rose-50/30 p-4">
-                    <label className="text-xs font-bold text-rose-700">Alasan Penolakan:</label>
+                  <div className="space-y-3 rounded-2xl border border-rose-100 bg-rose-50/20 p-4">
+                    <label className="text-xs font-bold text-rose-700">Alasan Resmi Penolakan Berkas:</label>
                     <textarea
                       disabled={isProcessing}
                       value={rejectReason}
                       onChange={(e) => setRejectReason(e.target.value)}
-                      placeholder="Tulis alasan resmi penolakan..."
-                      className="w-full text-sm p-2.5 rounded-xl border border-rose-200 bg-background focus:outline-none focus:ring-2 focus:ring-rose-500 min-h-[70px]"
+                      placeholder="Contoh: Alamat yang Anda daftarkan belum terjangkau oleh tiang distribusi FO Sicakra..."
+                      className="w-full text-sm p-3 rounded-xl border border-rose-200 bg-background focus:outline-none focus:ring-2 focus:ring-rose-500 min-h-[80px]"
                     />
                     <div className="flex gap-2 justify-end">
                       <button
@@ -195,14 +241,14 @@ export function RegistrationDetail({
                           setIsRejecting(false);
                           setRejectReason("");
                         }}
-                        className="px-3 py-1.5 rounded-lg text-xs text-muted-foreground"
+                        className="px-4 py-2 rounded-lg text-xs text-muted-foreground hover:text-foreground font-medium"
                       >
                         Batal
                       </button>
                       <button
                         disabled={isProcessing}
                         onClick={() => onProcess("REJECTED")}
-                        className="px-3 py-1.5 rounded-lg text-xs bg-rose-600 text-white hover:bg-rose-700"
+                        className="px-4 py-2 rounded-lg text-xs bg-rose-600 text-white hover:bg-rose-700 font-bold shadow-sm"
                       >
                         Konfirmasi Tolak
                       </button>
@@ -213,8 +259,8 @@ export function RegistrationDetail({
             )}
             
             {selectedReg.status !== "PENDING" && (
-              <div className="p-6 border-t border-border text-center bg-muted/20 text-xs font-medium text-muted-foreground">
-                Berkas berstatus <span className="uppercase font-bold text-foreground">{selectedReg.status}</span>
+              <div className="p-6 border-t border-border text-center bg-muted/20 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Arsip Berkas Ini Sudah Berstatus: <span className="text-foreground">{selectedReg.status}</span>
               </div>
             )}
           </>
