@@ -15,15 +15,14 @@ export default function DashboardLayout({
   return (
     <div className="flex min-h-screen w-full bg-background">
       
+      {/* UPDATE SIDEBAR DI SINI */}
       <Sidebar 
-        activeSection={activeSection}
-        onSectionChange={setActiveSection}
+        role="OPERASIONAL" // 👈 UTAMA: Ganti string ini jadi "OPERASIONAL" atau "TEKNIS" buat ngetes perubahannya
         collapsed={collapsed}
         onCollapsedChange={setCollapsed}
       />
       
-      {/* KUNCINYA DI SINI: 
-        Kita pakai padding-left (pl) untuk ngedorong konten. 
+      {/* Kita pakai padding-left (pl) untuk ngedorong konten. 
         Kalau collapsed (dilipat) paddingnya 80px, kalau kebuka paddingnya 280px.
       */}
       <div 

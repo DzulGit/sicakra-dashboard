@@ -1,48 +1,94 @@
 "use client";
 
 import React from "react";
-import LucideCircleDollarSignIcon from "lucide-react"; // Import the missing icon component
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 import { cn } from "@/lib/utils";
-import type { Section } from "@/app/page";
 import {
   LayoutDashboard,
-  GitBranch,
-  Handshake,
   Users,
-  BarChart3,
+  Package,
+  Wifi,
   ChevronLeft,
   ChevronRight,
-  CircleDollarSign,
-  Building2,
-  TrendingUp,
   Settings,
+  ClipboardList,
+  Wallet,
 } from "lucide-react";
 
+// Ambil type role dari cetakan database lu
+export type AdminRole = "SUPER_ADMIN" | "OPERASIONAL" | "KEUANGAN" | "TEKNIS";
+
 interface SidebarProps {
-  activeSection: Section;
-  onSectionChange: (section: Section) => void;
+  role: AdminRole;
   collapsed: boolean;
   onCollapsedChange: (collapsed: boolean) => void;
 }
 
-const navItems: { id: Section; label: string; icon: React.ElementType }[] = [
-  { id: "overview", label: "Overview", icon: LayoutDashboard },
-  { id: "pipeline", label: "Pipeline", icon: GitBranch },
-  { id: "deals", label: "Deals", icon: Handshake },
-  { id: "customers", label: "Customers", icon: Building2 },
-  { id: "team", label: "Team", icon: Users },
-  { id: "forecasting", label: "Forecasting", icon: TrendingUp },
-  { id: "reports", label: "Reports", icon: BarChart3 },
-  { id: "settings", label: "Settings", icon: Settings },
+// ─── 1. DAFTAR SEMUA FITUR GLOBAL & PERMISSION (Ide Brilian Lu) ───
+const ALL_FEATURES = [
+  {
+    id: "registrations",
+    label: "Pendaftaran",
+    href: "/dashboard/operasional/registrations",
+    icon: Users,
+    allowedRoles: ["SUPER_ADMIN", "OPERASIONAL"], // Cuma bisa dilihat Super Admin & Operasional
+  },
+  {
+    id: "packages",
+    label: "Kelola Paket",
+    href: "/dashboard/operasional/packages",
+    icon: Package,
+    allowedRoles: ["SUPER_ADMIN", "OPERASIONAL", "KEUANGAN"], // Fleksibel untuk 3 role
+  },
+  {
+    id: "billing",
+    label: "Tagihan Pelanggan",
+    href: "/dashboard/keuangan", // Menuju folder keuangan nanti
+    icon: Wallet,
+    allowedRoles: ["SUPER_ADMIN", "KEUANGAN"],
+  },
+  {
+    id: "tasks",
+    label: "Jadwal Pasang",
+    href: "/dashboard/teknis", // Menuju folder teknis nanti
+    icon: ClipboardList,
+    allowedRoles: ["SUPER_ADMIN", "TEKNIS"],
+  },
+  {
+    id: "settings",
+    label: "Settings",
+    href: "#",
+    icon: Settings,
+    allowedRoles: ["SUPER_ADMIN", "OPERASIONAL", "KEUANGAN", "TEKNIS"], // Semua role bisa akses
+  },
 ];
 
 export function Sidebar({
-  activeSection,
-  onSectionChange,
+  role = "OPERASIONAL",
   collapsed,
   onCollapsedChange,
 }: SidebarProps) {
+  const pathname = usePathname();
+
+  // ─── 2. LOGIKA PILIH OVERVIEW SECARA DINAMIS ──────────────────────
+  // Sesuai kesepakatan, overview dipisah per folder role masing-masing
+  const overviewMenu = {
+    id: "overview",
+    label: "Overview",
+    href: role === "SUPER_ADMIN" ? "/dashboard/operasional" : `/dashboard/${role.toLowerCase()}`, 
+    icon: LayoutDashboard,
+  };
+
+  // ─── 3. FILTER FITUR YANG DIIZINKAN UNTUK ROLE INI ───────────────
+  const allowedFeatures = ALL_FEATURES.filter((feature) =>
+    feature.allowedRoles.includes(role)
+  );
+
+  // Gabungkan menu Overview di paling atas, baru diikuti fitur yang lolos filter
+  const finalNavItems = [overviewMenu, ...allowedFeatures];
+
   return (
     <aside
       className={cn(
@@ -50,11 +96,11 @@ export function Sidebar({
         collapsed ? "w-[72px]" : "w-[260px]"
       )}
     >
-      {/* Logo */}
+      {/* Brand Logo */}
       <div className="h-16 flex items-center px-4 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 bg-white">
-            <CircleDollarSign className="w-5 h-5 text-accent-foreground" />
+          <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 bg-primary/10">
+            <Wifi className="w-5 h-5 text-primary" />
           </div>
           <span
             className={cn(
@@ -62,29 +108,29 @@ export function Sidebar({
               collapsed ? "opacity-0 w-0" : "opacity-100 w-auto"
             )}
           >
-            SalesOps
+            Sicakra WiFi
           </span>
         </div>
       </div>
 
-      {/* Navigation */}
+      {/* Dynamic Navigation Container */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-hidden">
-        {navItems.map((item) => {
+        {finalNavItems.map((item) => {
           const Icon = item.icon;
-          const isActive = activeSection === item.id;
+          const isActive = pathname === item.href;
 
           return (
-            <button
+            <Link
               key={item.id}
-              onClick={() => onSectionChange(item.id)}
+              href={item.href}
               className={cn(
-                "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group relative",
+                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group relative",
                 isActive
                   ? "bg-sidebar-accent text-sidebar-foreground"
                   : "text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
               )}
             >
-              {/* Active indicator */}
+              {/* Indikator Garis Aktif */}
               <span
                 className={cn(
                   "absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-r-full bg-accent transition-all duration-300",
@@ -105,7 +151,7 @@ export function Sidebar({
               >
                 {item.label}
               </span>
-            </button>
+            </Link>
           );
         })}
       </nav>
