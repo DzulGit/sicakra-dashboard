@@ -10,10 +10,12 @@ interface RegistrationTableProps {
 }
 
 export function RegistrationTable({
-  data = [],
+  data, // 👈 Data mentah dari props
   selectedRegId,
   onSelectRow,
 }: RegistrationTableProps) {
+  
+  const tableData = Array.isArray(data) ? data : (data as any)?.data || [];
   
   // Fungsi pembantu untuk mewarnai Badge Status secara dinamis
   const getStatusBadge = (status: "PENDING" | "APPROVED" | "REJECTED") => {
@@ -48,7 +50,7 @@ export function RegistrationTable({
               </td>
             </tr>
           ) : (
-            data.map((reg) => {
+            tableData.map((reg: any) => {
               const isSelected = selectedRegId === reg.id;
               
               return (
