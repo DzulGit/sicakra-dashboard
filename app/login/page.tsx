@@ -14,7 +14,7 @@ const DotMatrix = dynamic(
 
 function AdminLoginForm() {
   const router = useRouter()
-  
+
   const [role, setRole] = useState('Teknis')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -27,17 +27,33 @@ function AdminLoginForm() {
     setError(null)
 
     try {
-      // 1. LOGIN UTAMA KE BACKEND NESTJS LU
-      const { accessToken, admin } = await loginAdmin(email, password, role)
-      saveAuth(admin)
+      // 1. Panggil loginAdmin dengan parameter state 'role' dari dropdown (Aman 👍)
+      const res = await loginAdmin(email, password, role);
 
-      // Backend sets HttpOnly session cookie; save non-sensitive admin info and redirect
-      saveAuth(admin)
-      router.push(`/dashboard/${admin.role.toLowerCase()}`)
+      console.log("Response Auth:", res); 
+
+      // 2. Ubah nama variabelnya jadi 'extractedRole' agar tidak bentrok dengan state
+      const extractedRole = res?.role || res?.admin?.role || res?.user?.role || res?.teknis?.role || res?.data?.role;
+
+      if (extractedRole) {
+        // Ambil objek profilnya
+        const profileData = res?.admin || res?.user || res?.teknis || res?.data || res;
+
+        // Jalankan fungsi simpan session bawaan lu
+        if (typeof saveAuth === 'function') {
+          saveAuth(profileData);
+        }
+
+        // Direct user sesuai role yang didapat dari backend
+        router.push(`/dashboard/${extractedRole.toLowerCase()}`);
+      } else {
+        setError("Format data akun tidak dikenali oleh sistem.");
+      }
+
     } catch (err: any) {
-      setError(err instanceof Error ? err.message : 'Terjadi kesalahan autentikasi')
+      setError(err?.message || "Gagal masuk ke dashboard, periksa kembali akun Anda.");
     } finally {
-      setLoading(false)
+      setLoading(false); // 🔥 Tambahan biar tombolnya gak stuck loading kalau gagal
     }
   }
 
@@ -54,9 +70,9 @@ function AdminLoginForm() {
       <div className="space-y-4">
         <div>
           <label className="text-xs text-muted-foreground block mb-1.5">Role Akses</label>
-          <select 
-            value={role} 
-            onChange={(e) => setRole(e.target.value)} 
+          <select
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
             className="w-full h-10 rounded px-3 bg-input text-foreground border border-border focus:outline-none focus:ring-2 focus:ring-ring/50"
           >
             <option value="Teknis">Teknis</option>
@@ -127,7 +143,7 @@ export default function Page() {
 
   return (
     <main className="h-screen w-full relative overflow-hidden flex flex-col items-center justify-center">
-      
+
       {/* Background Animasi Dot Matrix */}
       <div className="absolute inset-0 -z-20">
         <DotMatrix
@@ -144,7 +160,7 @@ export default function Page() {
 
       {/* Kontainer Utama */}
       <div className="w-full max-w-6xl px-6 md:px-12 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-8 items-center animate-in fade-in duration-700 z-10 flex-1">
-        
+
         {/* Kolom Kiri */}
         <div className="space-y-8 text-left hidden md:block">
           <div className="space-y-4">
