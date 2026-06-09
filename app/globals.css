@@ -130,6 +130,8 @@
   --color-sidebar-ring: var(--sidebar-ring);
   --color-success: var(--success);
   --color-warning: var(--warning);
+  --animate-marquee: marquee var(--duration, 20s) linear infinite;
+  --animate-marquee-vertical: marquee-vertical var(--duration, 20s) linear infinite;
 }
 
 @layer base {
@@ -143,13 +145,13 @@
 
 /* Template animation keyframes and utilities (marquee, fade-in, helpers) */
 @keyframes marquee {
-  0% { transform: translateX(0%); }
-  100% { transform: translateX(-50%); }
+  from { transform: translateX(0); }
+  to { transform: translateX(calc(-100% - var(--gap, 1rem))); }
 }
 
 @keyframes marquee-vertical {
-  0% { transform: translateY(0%); }
-  100% { transform: translateY(-50%); }
+  from { transform: translateY(0); }
+  to { transform: translateY(calc(-100% - var(--gap, 1rem))); }
 }
 
 @keyframes fade-in {
