@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import { loginAdmin, fetchSystemStatus } from "@/lib/api"
 import { saveAuth } from "@/lib/auth"
 import { Loader2 } from "lucide-react"
+import { LogoMarquee } from "@/components/login/logo-marquee";
 
 const DotMatrix = dynamic(
   () => import("@/components/login/dot-matrix").then((m) => m.DotMatrix),
@@ -27,7 +28,7 @@ function AdminLoginForm() {
     setError(null)
 
     try {
-      // 1. Panggil loginAdmin dengan parameter state 'role' dari dropdown (Aman 👍)
+      // 1. Panggil loginAdmin dengan parameter state 'role' dari dropdown
       const res = await loginAdmin(email, password, role);
 
       console.log("Response Auth:", res); 
@@ -53,7 +54,7 @@ function AdminLoginForm() {
     } catch (err: any) {
       setError(err?.message || "Gagal masuk ke dashboard, periksa kembali akun Anda.");
     } finally {
-      setLoading(false); // 🔥 Tambahan biar tombolnya gak stuck loading kalau gagal
+      setLoading(false); // Biar tombolnya gak stuck loading kalau gagal
     }
   }
 
@@ -187,6 +188,11 @@ export default function Page() {
               <div className="w-2 h-2 rounded-full bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.5)]"></div>
               End-to-End Encryption
             </div>
+          </div>
+
+          {/* LOGO SICAKRA */}
+          <div className="pt-6 w-[80%]">
+             <LogoMarquee />
           </div>
         </div>
 

@@ -1,17 +1,15 @@
 import React from "react"
 import type { Metadata } from 'next'
-import { DM_Sans, JetBrains_Mono } from 'next/font/google'
+import { DM_Sans } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 import Providers from './providers'
 
-const _dmSans = DM_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700"] });
-const _jetbrainsMono = JetBrains_Mono({ subsets: ["latin"] });
+const dmSans = DM_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700"] });
 
 export const metadata: Metadata = {
-  title: 'SalesOps Dashboard',
-  description: 'Sales Operations Dashboard - Analytics & Pipeline Management',
-  generator: 'v0.app',
+  title: 'Sicakra Workspace',
+  description: 'Pusat kendali operasional terpadu PT Sinergi Cakra Buana.',
   icons: {
     icon: [
       {
@@ -34,15 +32,14 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="id" suppressHydrationWarning>
-      {/* 1. Tempelkan font kelas _dmSans ke body agar tampilan teks dashboard lu estetik */}
-      <body className={_dmSans.className}>
+      <body className={dmSans.className}>
         
-        {/* 2. DISINI KUNCINYA: Bungkus dengan <Providers> agar Clerk & Theme aktif secara global */}
+        {/* Bungkus dengan Providers untuk Theme (Dark/Light mode) */}
         <Providers>
           {children}
         </Providers>
 
-        {/* 3. Sekalian gua pasang Analytics vercel-nya karena sayang udah lu import */}
+        {/* Analytics dari Vercel tetep dibiarin kalau lu mau pantau trafik */}
         <Analytics />
       </body>
     </html>
