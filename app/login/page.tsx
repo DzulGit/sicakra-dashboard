@@ -1,11 +1,12 @@
 "use client"
 
 import dynamic from "next/dynamic"
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { loginAdmin, fetchSystemStatus } from "@/lib/api"
 import { saveAuth } from "@/lib/auth"
 import { Loader2 } from "lucide-react"
+import { useClerk } from "@clerk/nextjs" // Core Clerk module
 
 const DotMatrix = dynamic(
   () => import("@/components/login/dot-matrix").then((m) => m.DotMatrix),
@@ -14,6 +15,8 @@ const DotMatrix = dynamic(
 
 function AdminLoginForm() {
   const router = useRouter()
+  const clerk = useClerk() as any // Bypass Clerk type issues
+  
   const [role, setRole] = useState('Teknis')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -26,11 +29,25 @@ function AdminLoginForm() {
     setError(null)
 
     try {
+      // 1. LOGIN UTAMA KE BACKEND NESTJS LU
       const { accessToken, admin } = await loginAdmin(email, password, role)
       saveAuth(accessToken, admin)
-      router.push(`/dashboard/${admin.role.toLowerCase()}`)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Terjadi kesalahan')
+
+      // 2. LOGIN SEKALIGUS KE CLERK
+      const clerkResult = await clerk.client.signIn.create({
+        identifier: email,
+        password: password,
+      })
+
+      if (clerkResult.status === "complete") {
+        await clerk.setActive({ session: clerkResult.createdSessionId })
+        // 3. REDIRECT JIKA KEDUANYA SUKSES
+        router.push(`/dashboard/${admin.role.toLowerCase()}`)
+      } else {
+        throw new Error("Clerk butuh verifikasi tambahan.")
+      }
+    } catch (err: any) {
+      setError(err instanceof Error ? err.message : 'Terjadi kesalahan autentikasi')
     } finally {
       setLoading(false)
     }
@@ -121,7 +138,6 @@ export default function Page() {
   }, [])
 
   return (
-    // Menggunakan h-screen dan overflow-hidden agar 100% pas di layar tanpa scroll
     <main className="h-screen w-full relative overflow-hidden flex flex-col items-center justify-center">
       
       {/* Background Animasi Dot Matrix */}
@@ -138,10 +154,10 @@ export default function Page() {
         />
       </div>
 
-      {/* Kontainer Utama: Grid 2 Kolom (kiri teks, kanan form) */}
+      {/* Kontainer Utama */}
       <div className="w-full max-w-6xl px-6 md:px-12 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-8 items-center animate-in fade-in duration-700 z-10 flex-1">
         
-        {/* Kolom Kiri: Copywriting & Visual */}
+        {/* Kolom Kiri */}
         <div className="space-y-8 text-left hidden md:block">
           <div className="space-y-4">
             <h1 className="text-5xl md:text-7xl font-serif italic tracking-tight text-balance leading-[0.95]">
@@ -154,7 +170,6 @@ export default function Page() {
             </p>
           </div>
 
-          {/* List estetis untuk mempercantik UI */}
           <div className="flex flex-col gap-4 pt-2">
             <div className="flex items-center gap-3 text-sm text-muted-foreground/80">
               <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
@@ -171,20 +186,20 @@ export default function Page() {
           </div>
         </div>
 
-        {/* Kolom Kanan: Form Login */}
+        {/* Kolom Kanan */}
         <div className="flex justify-center lg:justify-end items-center w-full">
           <AdminLoginForm />
         </div>
       </div>
 
-      {/* Marquee Teks Berjalan di Absolute Bottom (Nempel Bawah Layar) */}
+      {/* Marquee Teks Berjalan */}
       <div className="absolute bottom-0 w-full border-t border-white/5 bg-background/20 backdrop-blur-sm py-3">
         <div className="flex overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
           {marqueeTexts.length > 0 && (
             <div className="animate-marquee-custom flex min-w-full shrink-0 gap-8 items-center">
               {[...Array(2)].map((_, i) => (
                 <div key={i} className="flex gap-8 items-center whitespace-nowrap">
-                  {marqueeTexts.map((text, idx) => (
+                  {marqueeTexts.map((text: string, idx: number) => (
                     <div key={idx} className="flex items-center gap-8">
                       <span className="text-xs font-medium text-muted-foreground/70 tracking-wide">
                         {text}
