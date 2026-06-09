@@ -1,8 +1,6 @@
 import { useState } from "react";
-import { useAuth } from "@clerk/nextjs";
 
 export function useFinance(initialInvoices: any[] = [], onRefresh?: () => void) {
-  const { getToken } = useAuth();
   
   // State untuk data tagihan dan filter status di UI
   const [invoices, setInvoices] = useState<any[]>(initialInvoices);

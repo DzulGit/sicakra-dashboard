@@ -1,5 +1,4 @@
 import React from "react";
-import { auth } from "@clerk/nextjs/server";
 import { FinanceFitur } from "@/components/dashboard/fitur/finance";
 
 // Fungsi pembantu untuk menggenerate tanggal relatif terhadap hari ini

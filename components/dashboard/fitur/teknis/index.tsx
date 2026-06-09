@@ -3,38 +3,26 @@
 import React, { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Wrench, MapPin, Phone, CheckCircle, ShieldAlert, Cpu, Copy } from "lucide-react";
-import { useAuth } from "@clerk/nextjs"; // 👈 1. KITA IMPORT CLERK DI SINI
-
-interface TeknisFiturProps {
-  initialTasks: any[];
-  // 👈 apiCompleteFn KITA HAPUS BIAR GAK ERROR NEXT.JS
-}
-
-export function TeknisFitur({ initialTasks = [] }: TeknisFiturProps) {
-  // 🔥 Filter aman buat ngindarin error map
+export function TeknisFitur({ initialTasks = [] }: any) {
+  // Filter aman buat ngindarin error map
   const validData = Array.isArray(initialTasks) ? initialTasks : [];
   const [tasks, setTasks] = useState<any[]>(validData);
   const [processingId, setProcessingId] = useState<string | null>(null);
   
   const [activatedAccount, setActivatedAccount] = useState<{ name: string; token: string; phone: string } | null>(null);
 
-  // 👈 2. PANGGIL FUNGSI TOKEN
-  const { getToken } = useAuth();
-
   const handleCompleteInstallation = async (id: string, customerName: string, customerPhone: string) => {
     if (!confirm(`Apakah instalasi fisik di rumah ${customerName} benar-benar sudah selesai dan internet sudah menyala?`)) return;
     
     setProcessingId(id);
     try {
-      const clerkToken = await getToken({ template: "nestjs" });
-
-      // 🔥 FIX 1: Ubah METHOD menjadi POST sesuai controller NestJS lu!
+      // Ubah METHOD menjadi POST sesuai controller NestJS lu!
       const response = await fetch(`http://localhost:3000/registrations/${id}/complete`, {
         method: "POST", 
         headers: { 
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${clerkToken}` 
         },
+        credentials: "include",
       });
 
       if (!response.ok) throw new Error("Gagal aktivasi di server");

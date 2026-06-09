@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation"
 import { loginAdmin, fetchSystemStatus } from "@/lib/api"
 import { saveAuth } from "@/lib/auth"
 import { Loader2 } from "lucide-react"
-import { useClerk } from "@clerk/nextjs" // Core Clerk module
 
 const DotMatrix = dynamic(
   () => import("@/components/login/dot-matrix").then((m) => m.DotMatrix),
@@ -15,7 +14,6 @@ const DotMatrix = dynamic(
 
 function AdminLoginForm() {
   const router = useRouter()
-  const clerk = useClerk() as any // Bypass Clerk type issues
   
   const [role, setRole] = useState('Teknis')
   const [email, setEmail] = useState('')
@@ -31,21 +29,11 @@ function AdminLoginForm() {
     try {
       // 1. LOGIN UTAMA KE BACKEND NESTJS LU
       const { accessToken, admin } = await loginAdmin(email, password, role)
-      saveAuth(accessToken, admin)
+      saveAuth(admin)
 
-      // 2. LOGIN SEKALIGUS KE CLERK
-      const clerkResult = await clerk.client.signIn.create({
-        identifier: email,
-        password: password,
-      })
-
-      if (clerkResult.status === "complete") {
-        await clerk.setActive({ session: clerkResult.createdSessionId })
-        // 3. REDIRECT JIKA KEDUANYA SUKSES
-        router.push(`/dashboard/${admin.role.toLowerCase()}`)
-      } else {
-        throw new Error("Clerk butuh verifikasi tambahan.")
-      }
+      // Backend sets HttpOnly session cookie; save non-sensitive admin info and redirect
+      saveAuth(admin)
+      router.push(`/dashboard/${admin.role.toLowerCase()}`)
     } catch (err: any) {
       setError(err instanceof Error ? err.message : 'Terjadi kesalahan autentikasi')
     } finally {

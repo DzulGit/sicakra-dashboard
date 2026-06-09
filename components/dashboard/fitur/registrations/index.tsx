@@ -3,14 +3,11 @@
 import React, { useState } from "react";
 import { Search, MapPin, Phone, CalendarClock, ShieldAlert, CheckCircle } from "lucide-react";
 import { AssignTaskModal } from "./AssignTaskModal";
-import { useAuth } from "@clerk/nextjs"; // 👈 1. IMPORT CLERK DI SINI
 
 export function RegistrationsFitur({ initialData = [], role }: any) {
   const [data, setData] = useState(initialData);
   const [searchQuery, setSearchQuery] = useState("");
   
-  // 👈 2. PANGGIL FUNGSI GET TOKEN DARI HOOK CLERK
-  const { getToken } = useAuth(); 
 
   // State Modal
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
@@ -24,15 +21,10 @@ export function RegistrationsFitur({ initialData = [], role }: any) {
 
   const handleAssignTask = async (id: string, payload: { surveyDate: string; surveyTime: string }) => {
     try {
-      // 👈 3. GENERATE TOKEN VIP DULU SEBELUM MENCET API
-      const token = await getToken({ template: "nestjs" });
-
       const response = await fetch(`http://localhost:3000/registrations/${id}/assign`, {
         method: "PATCH",
-        headers: { 
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}` // 👈 4. SERAHKAN TOKENNYA KE SATPAM NESTJS
-        },
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(payload),
       });
 

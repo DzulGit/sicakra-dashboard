@@ -5,6 +5,8 @@ export async function loginAdmin(email: string, password: string, role: string) 
   const res = await fetch(`${NESTJS_API_URL}/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    // Include credentials so browser accepts Set-Cookie from backend
+    credentials: "include",
     // Pastikan role dikirim dan di-uppercase agar cocok dengan Enum Prisma
     body: JSON.stringify({ email, password, role: role.toUpperCase() }),
   });

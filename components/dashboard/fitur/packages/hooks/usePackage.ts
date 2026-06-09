@@ -1,8 +1,6 @@
 import { useState } from "react";
-import { useAuth } from "@clerk/nextjs";
 
 export function usePackage(initialData: any[] = [], onRefresh?: () => void) {
-  const { getToken } = useAuth();
   
   // State manajemen terpusat untuk paket
   const [packages, setPackages] = useState<any[]>(initialData);
@@ -57,7 +55,8 @@ export function usePackage(initialData: any[] = [], onRefresh?: () => void) {
 
     setIsProcessing(true);
     try {
-      const token = await getToken({ template: "nestjs" });
+      // Backend session is HttpOnly; pass empty token placeholder to server APIs
+      const token = "";
       
       // Filter fitur yang kosong agar tidak ikut tersimpan ke database
       const cleanFeatures = formData.features.filter(f => f.trim() !== "");
@@ -71,7 +70,7 @@ export function usePackage(initialData: any[] = [], onRefresh?: () => void) {
       };
 
       // Jalankan fungsi API (Tambah jika tidak ada selectedPackage, Edit jika ada)
-      await apiSaveFn(token || "", selectedPackage?.id || null, payload);
+      await apiSaveFn(token, selectedPackage?.id || null, payload);
 
       alert(selectedPackage ? "Paket berhasil diperbarui!" : "Paket baru berhasil ditambahkan!");
       setIsModalOpen(false);
@@ -92,8 +91,8 @@ export function usePackage(initialData: any[] = [], onRefresh?: () => void) {
     if (!konfirmasi) return;
 
     try {
-      const token = await getToken({ template: "nestjs" });
-      await apiToggleFn(token || "", id, { status: nextStatus });
+      const token = "";
+      await apiToggleFn(token, id, { status: nextStatus });
       
       if (onRefresh) onRefresh();
     } catch (err) {

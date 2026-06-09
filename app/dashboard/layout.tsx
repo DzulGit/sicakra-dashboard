@@ -1,9 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { Header } from "@/components/dashboard/header"
-import { useSession } from "@clerk/nextjs" // 👈 1. Ganti menjadi useSession
+import { getAdmin } from '@/lib/auth'
 import type { AdminRole } from "@/components/dashboard/sidebar"
 
 export default function DashboardLayout({
@@ -14,14 +14,14 @@ export default function DashboardLayout({
   const [activeSection, setActiveSection] = useState<any>("overview")
   const [collapsed, setCollapsed] = useState(false)
 
-  // 🔐 2. Ambil session aktif untuk membaca JWT Claims Token
-  const { session } = useSession()
-  
-  // 3. Baca metadata role langsung dari claims (Sama persis dengan server-side)
-  const userRole = ((session as any)?.claims?.metadata?.role || "OPERASIONAL") as AdminRole
+  const [userRole, setUserRole] = useState<AdminRole>("OPERASIONAL")
 
-  // 🛠️ DEBUGGING: Buka F12 (Inspect Element) di browser lu untuk mastiin string role dari Clerk
-  console.log("INFO-SICAKRA: Role terdeteksi di browser saat ini ->", userRole);
+  useEffect(() => {
+    const admin = getAdmin()
+    if (admin && admin.role) {
+      setUserRole(admin.role as AdminRole)
+    }
+  }, [])
 
   return (
     <div className="flex min-h-screen w-full bg-background">

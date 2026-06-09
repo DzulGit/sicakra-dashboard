@@ -1,12 +1,10 @@
 import { useState } from "react";
-import { useAuth } from "@clerk/nextjs";
 
 // 💡 TIPS: Jangan lupa sesuaikan import fungsi API lu di sini jika ada file terpisah,
 // misal: import { processRegistration } from "@/lib/api";
 // Sementara gua anggap fungsinya di-pass atau dipanggil langsung.
 
 export function useRegistration(initialData: any[] = [], loadDataFromPage?: () => void) {
-  const { getToken } = useAuth();
   
   // State manajemen terpusat untuk data pendaftaran
   const [data, setData] = useState<any[]>(initialData);
@@ -28,11 +26,11 @@ export function useRegistration(initialData: any[] = [], loadDataFromPage?: () =
     setIsProcessing(true);
 
     try {
-      // 1. Ambil token asimetris dari Clerk
-      const token = await getToken({ template: 'nestjs' });
+      // Backend uses HttpOnly session cookie; pass empty token placeholder
+      const token = "";
 
       // 2. Jalankan fungsi API dari backend NestJS
-      const response = await apiProcessFn(token || "", selectedReg.id, { 
+      const response = await apiProcessFn(token, selectedReg.id, { 
         status: status,
         rejectReason: status === "REJECTED" ? rejectReason : undefined 
       });

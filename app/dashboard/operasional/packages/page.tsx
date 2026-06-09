@@ -1,6 +1,5 @@
 import React from "react";
-import { auth } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
+import { cookies } from 'next/headers'
 import { PackagesFitur } from "@/components/dashboard/fitur/packages";
 
 // Contoh dummy fungsi server action (Ganti dengan nembak fetch/axios asli lu nanti)
@@ -16,13 +15,13 @@ async function serverTogglePackageStatus(token: string, id: string, payload: any
   return { success: true };
 }
 
-async function fetchPackagesData(token: string) {
+async function fetchPackagesData(sessionToken: string) {
   try {
     // 📢 SILAKAN GANTI URL DI BAWAH INI SESUAI ENDPOINT NESTJS LU
     const res = await fetch("http://localhost:3000/packages", {
-      headers: { 
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json"
+      headers: {
+        "Content-Type": "application/json",
+        Cookie: `sicakra_session=${sessionToken}`,
       },
       next: { revalidate: 30 } // Cache selama 30 detik karena data paket jarang berubah
     });
@@ -38,13 +37,21 @@ async function fetchPackagesData(token: string) {
 }
 
 export default async function OperasionalPackagesPage() {
-  const { getToken, sessionClaims } = await auth();
-  const userRole = (sessionClaims?.metadata as any)?.role || "OPERASIONAL";
-  
-  const nestjsToken = await getToken({ template: "nestjs" });
-  
+  const cookieStore = await cookies();
+  const session = cookieStore.get('sicakra_session')?.value;
+  const userRole = (cookieStore.get('sicakra_role')?.value || 'operasional').toUpperCase();
+
+  if (!session) {
+    // middleware should handle redirects; return empty dataset
+    return (
+      <main className="w-full">
+        <div className="p-6">Unauthorized</div>
+      </main>
+    );
+  }
+
   // Ambil data paket riil dari server
-  const initialPackages = await fetchPackagesData(nestjsToken || "");
+  const initialPackages = await fetchPackagesData(session);
 
   return (
     <main className="w-full">
