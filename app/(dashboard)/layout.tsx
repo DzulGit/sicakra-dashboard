@@ -1,52 +1,48 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Sidebar } from "@/components/dashboard/sidebar"
-import { Header } from "@/components/dashboard/header"
-import { getAdmin } from '@/lib/auth'
-import type { AdminRole } from "@/components/dashboard/sidebar"
+import React, { useState, useEffect } from "react";
+import { Sidebar } from "@/components/layout/sidebar"; // 🔥 Sudah diarahkan ke folder layout baru
+import { Header } from "@/components/layout/header";   // 🔥 Sudah diarahkan ke folder layout baru
+import { AdminRole } from "@/types";
+import Cookies from "js-cookie";
 
 export default function DashboardLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
-  const [activeSection, setActiveSection] = useState<any>("overview")
-  const [collapsed, setCollapsed] = useState(false)
-
-  const [userRole, setUserRole] = useState<AdminRole>("OPERASIONAL")
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [role, setRole] = useState<AdminRole>("OPERASIONAL");
 
   useEffect(() => {
-    const admin = getAdmin()
-    if (admin && admin.role) {
-      setUserRole(admin.role as AdminRole)
-    }
-  }, [])
+    const savedRole = Cookies.get("sicakra_role") as AdminRole;
+    if (savedRole) setRole(savedRole);
+  }, []);
 
   return (
-    <div className="flex min-h-screen w-full bg-background">
+    <div className="min-h-screen bg-background text-foreground flex">
       
-      {/* SIDEBAR ASLI LU (TIDAK BERUBAH) */}
+      {/* Sisi Kiri: Sidebar Mewah Lu */}
       <Sidebar 
-        role={userRole} // 👈 Sekarang filtrasinya dijamin akurat mengikuti session token
-        collapsed={collapsed}
-        onCollapsedChange={setCollapsed}
+        role={role} 
+        collapsed={sidebarCollapsed} 
+        onCollapsedChange={setSidebarCollapsed} 
       />
-      
+
+      {/* Sisi Kanan: Area Konten Utama */}
       <div 
-        className={`flex flex-col flex-1 w-full transition-all duration-300 ${
-          collapsed ? "md:pl-[70px]" : "md:pl-[240px] lg:pl-[260px]"
-        }`}
+        className="flex-1 flex flex-col min-w-0 transition-all duration-300 ease-out"
+        style={{ 
+          paddingLeft: sidebarCollapsed ? "72px" : "260px" 
+        }}
       >
-        <Header 
-          title={activeSection}
-        />
-        
-        <main className="flex-1 p-6 lg:p-8 overflow-x-hidden">
+        <Header title="Sicakra Workspace" />
+
+        <main className="flex-1 p-6 overflow-y-auto">
           {children}
         </main>
       </div>
-      
+
     </div>
-  )
+  );
 }

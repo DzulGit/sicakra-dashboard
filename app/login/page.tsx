@@ -7,7 +7,7 @@ import { loginAdmin, fetchSystemStatus } from "@/lib/api"
 import { saveAuth } from "@/lib/auth"
 import { Loader2, Eye, EyeOff } from "lucide-react"
 import { LogoMarquee } from "@/components/login/logo-marquee"
-import { Marquee } from "@/components/login/marquee" // 🔥 Kita import Marquee buat teks bawah juga!
+import { Marquee } from "@/components/login/marquee"
 import { cn } from "@/lib/utils"
 
 const DotMatrix = dynamic(
@@ -39,7 +39,8 @@ function AdminLoginForm() {
         if (typeof saveAuth === 'function') {
           saveAuth(profileData);
         }
-        router.push(`/dashboard/${extractedRole.toLowerCase()}`);
+        // ✨ SEKARANG SUDAH FIX: Langsung lempar ke overview utama arsitektur baru
+        router.push("/overview");
       } else {
         setError("Format data akun tidak dikenali oleh sistem.");
       }
@@ -149,7 +150,6 @@ export default function Page() {
           throw new Error()
         }
       } catch (err) {
-        // 🔥 DUMMY MATERI PENJELASAN SISTEM (NO USER STATS)
         setMarqueeTexts([
           "SICAKRA WORKSPACE: Sistem Informasi & Pusat Kendali Operasional Terpadu PT Sinergi Cakra Buana",
           "MODUL TEKNIS: Manajemen Aktivasi Jaringan, Penugasan Lapangan Teknisi, dan Pemantauan Infrastruktur OLT",
@@ -221,7 +221,7 @@ export default function Page() {
         </div>
       </div>
 
-      {/* 🔥 MARQUEE TEKS BAWAH (Menggunakan Komponen Marquee Biar Looping Seamless) 🔥 */}
+      {/* MARQUEE TEKS BAWAH */}
       <div className="absolute bottom-0 w-full border-t border-white/5 bg-background/20 backdrop-blur-sm py-1.5 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
         {marqueeTexts.length > 0 && (
           <Marquee pauseOnHover className="[--duration:35s] [--gap:4rem]" repeat={3}>
