@@ -1,4 +1,4 @@
-const API_URL = "http://127.0.0.1:3000/registrations";
+const API_URL = "http://localhost:3000/registrations";
 
 // 1. Sesuaikan Interface dengan Prisma Schema lu
 export interface Registration {
@@ -34,12 +34,14 @@ export interface Registration {
   createdAt: string;
 }
 
-export async function fetchRegistrations(token: string, status?: string): Promise<Registration[]> {
+// 🔥 HAPUS PARAMETER TOKEN, GANTI PAKE CREDENTIALS
+export async function fetchRegistrations(status?: string): Promise<Registration[]> {
   const url = status ? `${API_URL}?status=${status}` : API_URL;
   
   try {
     const res = await fetch(url, {
-      headers: { "Authorization": `Bearer ${token}` }
+      // ⚡ Ini kuncinya biar browser otomatis ngirim cookie sicakra_session
+      credentials: "include", 
     });
     
     // 1. KITA BACA RAW TEKSNYA DULU (Biar kebal dari error JSON)
@@ -68,8 +70,8 @@ export async function fetchRegistrations(token: string, status?: string): Promis
   }
 }
 
+// 🔥 HAPUS PARAMETER TOKEN JUGA DI SINI
 export async function processRegistration(
-  token: string,
   id: string, 
   data: { status: "APPROVED" | "REJECTED"; rejectReason?: string; surveyDate?: string; surveyTime?: string }
 ): Promise<Registration | null> {
@@ -77,10 +79,12 @@ export async function processRegistration(
     method: "PATCH", 
     headers: { 
       "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}` 
     },
+    // ⚡ Wajib include credentials juga pas nge-post aksi
+    credentials: "include",
     body: JSON.stringify(data),
   });
+  
   if (!res.ok) throw new Error("Gagal memproses pendaftaran");
   const text = await res.text();
   return text ? JSON.parse(text) : null;

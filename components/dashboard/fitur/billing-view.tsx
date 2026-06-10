@@ -1,57 +1,89 @@
 "use client";
 
 import React, { useState } from "react";
-import { CreditCard, Search, Printer, CheckCircle, Receipt } from "lucide-react";
+import useSWR from "swr";
+import { Wallet, Search, CheckCircle2, Clock, Loader2, DollarSign } from "lucide-react";
+import { fetchInvoices, payInvoice, Invoice } from "@/lib/invoices";
 
 export function BillingView() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [loadingId, setLoadingId] = useState<string | null>(null);
 
-  // Data Dummy Invoice Tagihan WiFi Sicakra
-  const dummyInvoices = [
-    { id: "INV-2026-001", name: "Zulal Hafizh", package: "Sicakra Home - 20 Mbps", amount: "Rp 150.000", status: "LUNAS", dueDate: "2026-06-05" },
-    { id: "INV-2026-002", name: "Budi Santoso", package: "Sicakra Gamers - 50 Mbps", amount: "Rp 275.000", status: "BELUM BAYAR", dueDate: "2026-06-15" },
-    { id: "INV-2026-003", name: "Ahmad Subarjo", package: "Sicakra Business - 100 Mbps", amount: "Rp 500.000", status: "JATUH TEMPO", dueDate: "2026-06-01" },
-  ];
-
-  // Filter pencarian berdasarkan nama atau nomor Invoice
-  const filteredInvoices = dummyInvoices.filter(
-    (item) =>
-      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.id.toLowerCase().includes(searchQuery.toLowerCase())
+  // 🔥 Tarik data real-time pake SWR
+  const { data: invoices, error, isLoading, mutate } = useSWR(
+    'invoicesList',
+    () => fetchInvoices()
   );
+
+  // ⚡ Aksi untuk mengubah status jadi LUNAS
+  const handlePayment = async (id: string) => {
+    if (!confirm("Yakin ingin menandai tagihan ini sebagai LUNAS?")) return;
+    
+    setLoadingId(id);
+    const success = await payInvoice(id);
+    if (success) {
+      mutate(); // Refresh tabel seketika
+    } else {
+      alert("Gagal memproses pembayaran. Cek log backend lu bos!");
+    }
+    setLoadingId(null);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64 text-muted-foreground">
+        <Loader2 className="w-6 h-6 animate-spin mr-2" />
+        <span>Memuat data tagihan pelanggan...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64 text-rose-500 font-medium">
+        <span>Gagal terhubung ke server. Pastikan NestJS lu jalan!</span>
+      </div>
+    );
+  }
+
+  // Filter pencarian berdasarkan nama, no invoice, atau periode
+  const filteredData = (invoices || []).filter((item: Invoice) => {
+    const search = searchQuery.toLowerCase();
+    return (
+      item.invoiceNum.toLowerCase().includes(search) ||
+      item.period.toLowerCase().includes(search) ||
+      (item.user?.fullName || "").toLowerCase().includes(search)
+    );
+  });
+
+  // Hitung total uang
+  const totalOmset = filteredData.filter((i: Invoice) => i.status === "LUNAS").reduce((acc: number, curr: Invoice) => acc + curr.amount, 0);
+  const totalTunggakan = filteredData.filter((i: Invoice) => i.status === "BELUM_DIBAYAR").reduce((acc: number, curr: Invoice) => acc + curr.amount, 0);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       
-      {/* Header Utama Fitur */}
-      <div>
-        <h2 className="text-xl font-bold text-foreground tracking-tight flex items-center gap-2">
-          <CreditCard className="w-5 h-5 text-accent" />
-          <span>Manajemen Tagihan & Invoice</span>
-        </h2>
-        <p className="text-xs text-muted-foreground mt-0.5">
-          Pantau status pembayaran, konfirmasi setoran, dan cetak invoice bulanan pelanggan.
-        </p>
-      </div>
-
-      {/* Ringkasan Kecil Finansial (Mini Widgets) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div className="p-4 bg-sidebar border border-sidebar-border rounded-xl flex items-center gap-4">
-          <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400">
-            <Receipt className="w-4 h-4" />
-          </div>
-          <div>
-            <p className="text-[10px] text-muted-foreground uppercase font-semibold">Total Omset Bulan Ini</p>
-            <p className="text-lg font-bold text-foreground mt-0.5">Rp 42.500.000</p>
-          </div>
+      {/* Header & Stats Cepat */}
+      <div className="flex flex-col md:flex-row justify-between gap-5">
+        <div>
+          <h2 className="text-xl font-bold text-foreground tracking-tight flex items-center gap-2">
+            <Wallet className="w-5 h-5 text-accent" />
+            <span>Manajemen Tagihan (Billing)</span>
+          </h2>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Pantau dan kelola pembayaran iuran bulanan pelanggan Sicakra.
+          </p>
         </div>
-        <div className="p-4 bg-sidebar border border-sidebar-border rounded-xl flex items-center gap-4">
-          <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-400">
-            <CreditCard className="w-4 h-4" />
+
+        {/* Kotak Rekap Keuangan */}
+        <div className="flex gap-4">
+          <div className="bg-sidebar border border-sidebar-border px-4 py-2 rounded-lg flex flex-col justify-center shadow-sm">
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Total Diterima</span>
+            <span className="text-sm font-extrabold text-emerald-400">Rp {totalOmset.toLocaleString("id-ID")}</span>
           </div>
-          <div>
-            <p className="text-[10px] text-muted-foreground uppercase font-semibold">Belum Terbayar</p>
-            <p className="text-lg font-bold text-foreground mt-0.5">24 Pelanggan</p>
+          <div className="bg-sidebar border border-sidebar-border px-4 py-2 rounded-lg flex flex-col justify-center shadow-sm">
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Total Tunggakan</span>
+            <span className="text-sm font-extrabold text-rose-400">Rp {totalTunggakan.toLocaleString("id-ID")}</span>
           </div>
         </div>
       </div>
@@ -61,68 +93,69 @@ export function BillingView() {
         <Search className="absolute left-3 w-4 h-4 text-muted-foreground pointer-events-none" />
         <input
           type="text"
-          placeholder="Cari nama atau nomor invoice..."
+          placeholder="Cari No Invoice atau Nama..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full h-9 pl-9 pr-4 rounded-lg bg-sidebar border border-sidebar-border text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-accent transition-all duration-200"
+          className="w-full h-9 pl-9 pr-4 rounded-lg bg-sidebar border border-sidebar-border text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-accent"
         />
       </div>
 
-      {/* Tabel Invoice Elegan */}
+      {/* Tabel Tagihan Barbar */}
       <div className="bg-sidebar border border-sidebar-border rounded-xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-sidebar-border bg-sidebar-accent/30 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
                 <th className="px-5 py-3">No. Invoice</th>
-                <th className="px-5 py-3">Nama Pelanggan</th>
-                <th className="px-5 py-3">Paket WiFi</th>
-                <th className="px-5 py-3">Jumlah Tagihan</th>
-                <th className="px-5 py-3">Jatuh Tempo</th>
+                <th className="px-5 py-3">Pelanggan</th>
+                <th className="px-5 py-3">Periode</th>
+                <th className="px-5 py-3">Nominal Tagihan</th>
                 <th className="px-5 py-3">Status</th>
                 <th className="px-5 py-3 text-right">Aksi</th>
               </tr>
             </thead>
             <tbody className="text-xs divide-y divide-sidebar-border text-sidebar-foreground">
-              {filteredInvoices.length > 0 ? (
-                filteredInvoices.map((invoice) => (
-                  <tr key={invoice.id} className="hover:bg-sidebar-accent/20 transition-colors duration-150">
-                    <td className="px-5 py-3.5 font-mono font-medium text-accent">{invoice.id}</td>
-                    <td className="px-5 py-3.5 font-medium">{invoice.name}</td>
-                    <td className="px-5 py-3.5 text-muted-foreground">{invoice.package}</td>
-                    <td className="px-5 py-3.5 font-semibold text-foreground">{invoice.amount}</td>
-                    <td className="px-5 py-3.5 text-muted-foreground">{invoice.dueDate}</td>
+              {filteredData.length > 0 ? (
+                filteredData.map((row: Invoice) => (
+                  <tr key={row.id} className="hover:bg-sidebar-accent/20 transition-colors duration-150">
+                    <td className="px-5 py-3.5 font-mono font-bold text-accent text-[11px]">{row.invoiceNum}</td>
                     <td className="px-5 py-3.5">
-                      <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
-                          invoice.status === "LUNAS"
-                            ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                            : invoice.status === "JATUH TEMPO"
-                            ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
-                            : "bg-amber-500/10 text-amber-400 border-amber-500/20"
-                        }`}
-                      >
-                        {invoice.status}
-                      </span>
+                      <div className="font-medium text-foreground">{row.user?.fullName || "Anonim"}</div>
+                      <div className="text-[10px] text-muted-foreground">{row.user?.phone}</div>
+                    </td>
+                    <td className="px-5 py-3.5 font-medium">{row.period}</td>
+                    <td className="px-5 py-3.5 font-bold">Rp {row.amount.toLocaleString("id-ID")}</td>
+                    <td className="px-5 py-3.5">
+                      {row.status === "LUNAS" ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                          <CheckCircle2 className="w-3 h-3" /> LUNAS
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                          <Clock className="w-3 h-3" /> BELUM DIBAYAR
+                        </span>
+                      )}
                     </td>
                     <td className="px-5 py-3.5 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
-                        <button className="p-1.5 hover:bg-sidebar-accent rounded-md text-muted-foreground hover:text-foreground transition-colors" title="Cetak Nota/Invoice">
-                          <Printer className="w-4 h-4" />
+                      {row.status === "BELUM_DIBAYAR" ? (
+                        <button 
+                          onClick={() => handlePayment(row.id)}
+                          disabled={loadingId === row.id}
+                          className="px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 rounded-md font-bold text-[10px] flex items-center gap-1.5 ml-auto transition-colors disabled:opacity-50"
+                        >
+                          {loadingId === row.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <DollarSign className="w-3.5 h-3.5" />}
+                          PROSES LUNAS
                         </button>
-                        {invoice.status !== "LUNAS" && (
-                          <button className="p-1.5 hover:bg-emerald-500/10 rounded-md text-muted-foreground hover:text-emerald-400 transition-colors" title="Konfirmasi Lunas">
-                            <CheckCircle className="w-4 h-4" />
-                          </button>
-                        )}
-                      </div>
+                      ) : (
+                        <span className="text-[10px] text-muted-foreground font-medium">Selesai</span>
+                      )}
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} className="px-5 py-10 text-center text-muted-foreground">
-                    Tidak ada data invoice yang cocok.
+                  <td colSpan={6} className="px-5 py-10 text-center text-muted-foreground">
+                    Belum ada data tagihan.
                   </td>
                 </tr>
               )}
