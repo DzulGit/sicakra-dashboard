@@ -1,13 +1,14 @@
-import { LayoutDashboard, Users, Package, Wallet, Settings } from "lucide-react";
+import { LayoutDashboard, Users, Package, Wallet, Wrench } from "lucide-react";
 import { AdminRole } from "@/types";
 
 export interface NavItem {
   label: string;
   href: string;
   icon: any;
+  allowedRoles: string[]; // Pakai string[] biar gampang match-nya
 }
 
-const ALL_NAV_ITEMS = [
+const ALL_NAV_ITEMS: NavItem[] = [
   {
     label: "Overview",
     href: "/overview",
@@ -32,10 +33,16 @@ const ALL_NAV_ITEMS = [
     icon: Wallet,
     allowedRoles: ["SUPER_ADMIN", "KEUANGAN"],
   },
+  // 🔥 INI DIA MENU YANG NGUMPET
+  {
+    label: "Tiket Gangguan",
+    href: "/tickets",
+    icon: Wrench,
+    allowedRoles: ["SUPER_ADMIN", "TEKNIS"], 
+  },
 ];
 
-export function getNavForRole(role: AdminRole): NavItem[] {
-  // Paksa role menjadi uppercase sewaktu pencocokan array
+export function getNavForRole(role: string): NavItem[] {
   const cleanRole = role?.toUpperCase();
   return ALL_NAV_ITEMS.filter((item) => item.allowedRoles.includes(cleanRole));
 }
