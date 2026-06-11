@@ -13,32 +13,32 @@ const ALL_NAV_ITEMS: NavItem[] = [
     label: "Overview",
     href: "/overview",
     icon: LayoutDashboard,
-    allowedRoles: ["SUPER_ADMIN", "OPERASIONAL", "KEUANGAN", "TEKNIS"],
+    allowedRoles: ["OPERASIONAL", "KEUANGAN", "TEKNIS"],
   },
   {
     label: "Pendaftaran",
     href: "/registrations",
     icon: Users,
-    allowedRoles: ["SUPER_ADMIN", "OPERASIONAL"],
+    allowedRoles: ["OPERASIONAL"],
   },
   {
     label: "Kelola Paket",
     href: "/packages",
     icon: Package,
-    allowedRoles: ["SUPER_ADMIN", "OPERASIONAL", "KEUANGAN"],
+    allowedRoles: ["OPERASIONAL", "KEUANGAN"],
   },
   {
     label: "Tagihan Pelanggan",
     href: "/billing",
     icon: Wallet,
-    allowedRoles: ["SUPER_ADMIN", "KEUANGAN"],
+    allowedRoles: ["KEUANGAN"],
   },
   // 🔥 INI DIA MENU YANG NGUMPET
   {
-    label: "Tiket Gangguan",
-    href: "/tickets",
+    label: "Tugas Lapangan",
+    href: "/tasks",
     icon: Wrench,
-    allowedRoles: ["SUPER_ADMIN", "TEKNIS"], 
+    allowedRoles: ["TEKNIS"], 
   },
 ];
 
