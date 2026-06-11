@@ -3,7 +3,7 @@ steps:
     args:
       - 'build'
       - '-t'
-      - 'asia-southeast2-docker.pkg.dev/$PROJECT_ID/sicakra/sicakra-dashboard:$COMMIT_SHA'
+      - 'asia-southeast2-docker.pkg.dev/$PROJECT_ID/sicakra/sicakra-dashboard:$SHORT_SHA'
       - '-t'
       - 'asia-southeast2-docker.pkg.dev/$PROJECT_ID/sicakra/sicakra-dashboard:latest'
       - '.'
@@ -20,7 +20,7 @@ steps:
       - 'run'
       - 'deploy'
       - 'sicakra-dashboard'
-      - '--image=asia-southeast2-docker.pkg.dev/$PROJECT_ID/sicakra/sicakra-dashboard:$COMMIT_SHA'
+      - '--image=asia-southeast2-docker.pkg.dev/$PROJECT_ID/sicakra/sicakra-dashboard:$SHORT_SHA'
       - '--region=asia-southeast2'
       - '--platform=managed'
       - '--allow-unauthenticated'
