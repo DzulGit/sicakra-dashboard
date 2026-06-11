@@ -4,7 +4,8 @@ export type Feature =
   | 'overview'  
   | 'registrations'  
   | 'billing'  
-  | 'packages'  
+  | 'packages'
+  | 'tasks'  
   | 'tickets'  
   | 'schedule'  
   | 'settings';
@@ -15,6 +16,7 @@ export const PERMISSIONS: Record<Feature, AdminRole[]> = {
   registrations: ['OPERASIONAL'],  
   billing:       ['KEUANGAN'],  
   packages:      ['OPERASIONAL', 'KEUANGAN'],  
+  tasks:         ['TEKNIS'],  
   tickets:       ['TEKNIS'],  
   schedule:      ['TEKNIS'],  
   settings:      ['OPERASIONAL', 'KEUANGAN', 'TEKNIS'],

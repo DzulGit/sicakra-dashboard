@@ -1,0 +1,38 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'asia-southeast2-docker.pkg.dev/$PROJECT_ID/sicakra/sicakra-dashboard:$COMMIT_SHA'
+      - '-t'
+      - 'asia-southeast2-docker.pkg.dev/$PROJECT_ID/sicakra/sicakra-dashboard:latest'
+      - '.'
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - '--all-tags'
+      - 'asia-southeast2-docker.pkg.dev/$PROJECT_ID/sicakra/sicakra-dashboard'
+
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'sicakra-dashboard'
+      - '--image=asia-southeast2-docker.pkg.dev/$PROJECT_ID/sicakra/sicakra-dashboard:$COMMIT_SHA'
+      - '--region=asia-southeast2'
+      - '--platform=managed'
+      - '--allow-unauthenticated'
+      - '--port=3001'
+      - '--memory=512Mi'
+      - '--cpu=1'
+      - '--min-instances=0'
+      - '--max-instances=3'
+      - '--set-secrets=NEXT_PUBLIC_API_URL=sicakra-api-url:latest'
+
+images:
+  - 'asia-southeast2-docker.pkg.dev/$PROJECT_ID/sicakra/sicakra-dashboard'
+
+options:
+  logging: CLOUD_LOGGING_ONLY

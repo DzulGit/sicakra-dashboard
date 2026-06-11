@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Package, Wallet, Wrench } from "lucide-react";
+import { LayoutDashboard, Users, Package, Wallet, Wrench, SettingsIcon } from "lucide-react";
 import { AdminRole } from "@/types";
 
 export interface NavItem {
@@ -39,6 +39,13 @@ const ALL_NAV_ITEMS: NavItem[] = [
     href: "/tasks",
     icon: Wrench,
     allowedRoles: ["TEKNIS"], 
+  },
+
+  {
+    label: "Settings",
+    href: "/settings",
+    icon: SettingsIcon,
+    allowedRoles: ["OPERASIONAL", "KEUANGAN", "TEKNIS"],
   },
 ];
 
