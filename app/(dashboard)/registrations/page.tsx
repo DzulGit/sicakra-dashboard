@@ -3,7 +3,7 @@ import { RegistrationsView } from "@/components/dashboard/fitur/registrations/re
 
 export const metadata = {
   title: "Validasi Pendaftaran | Sicakra Workspace",
-  description: "Panel operasional manajemen validasi pendaftaran internet baru.",
+  description: "Panel sistem verifikasi berkas pasang baru Sicakra WiFi.",
 };
 
 export default function RegistrationsPage() {
