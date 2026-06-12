@@ -1,4 +1,5 @@
-const API_URL = "http://localhost:3000/registrations";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+const API_URL = `${BASE_URL}/registrations`;
 
 // 1. Sesuaikan Interface dengan Prisma Schema lu
 export interface Registration {

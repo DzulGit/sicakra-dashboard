@@ -1,4 +1,5 @@
-const API_URL = "http://localhost:3000/invoices";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+const API_URL = `${BASE_URL}/invoices`;
 
 // Sesuaikan dengan Prisma Schema lu (biasanya backend lu nge-join data User)
 export interface Invoice {

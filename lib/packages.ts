@@ -1,5 +1,6 @@
-// Sesuaikan dengan URL backend NestJS lu
-const API_URL = "http://localhost:3000/packages"; 
+// Ambil URL dari Environment Variable, kalau gak ada otomatis fallback ke localhost
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+const API_URL = `${BASE_URL}/packages`;
 
 // Tipe data Package sesuai Prisma Schema
 export interface Package {
@@ -35,7 +36,7 @@ export async function createPackage(data: Partial<Package>): Promise<Package> {
 // 3. Update Paket
 export async function updatePackage(id: string, data: Partial<Package>): Promise<Package> {
   const res = await fetch(`${API_URL}/${id}`, {
-    method: "PATCH", // Sesuai dengan bawaan updateDto NestJS
+    method: "PATCH", 
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
