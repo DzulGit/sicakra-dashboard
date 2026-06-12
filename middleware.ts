@@ -3,7 +3,6 @@ import type { NextRequest } from 'next/server';
 import { canAccess, Feature } from '@/lib/permissions';
 import { AdminRole } from '@/types';
 
-// Map URL path ke feature name
 const PATH_FEATURE_MAP: Record<string, Feature> = {
   '/overview':      'overview',
   '/registrations': 'registrations',
@@ -14,26 +13,27 @@ const PATH_FEATURE_MAP: Record<string, Feature> = {
   '/settings':      'settings',
 };
 
-// 🔥 PERBAIKAN: Nama fungsi wajib diubah menjadi 'proxy' agar dikenali Next.js 16
-export function proxy(request: NextRequest) {
+// 🔥 PERBAIKAN 1: Namanya WAJIB 'middleware' bos!
+export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Ambil cookie token sesi & role bawaan backend
-  const session = request.cookies.get("sicakra_session")?.value;
+  // 🔥 PERBAIKAN 2: Frontend gak bisa baca sicakra_session! 
+  // Kita cek keberadaan cookie 'sicakra_role' buatan frontend sebagai bukti otentikasi.
   const roleRaw = request.cookies.get("sicakra_role")?.value;
+  const isAuthenticated = !!roleRaw; 
   
   const role = (roleRaw?.toUpperCase() || "OPERASIONAL") as AdminRole;
 
-  // Biarkan jika user mengakses halaman login dan belum punya sesi
+  // Kalo lagi di halaman login tapi udah punya tiket, langsung lempar ke overview
   if (pathname.startsWith('/login')) {
-    if (session) {
+    if (isAuthenticated) {
       return NextResponse.redirect(new URL('/overview', request.url));
     }
     return NextResponse.next();
   }
 
-  // Gerbang Utama: Jika belum login, tendang ke /login
-  if (!session) {
+  // Gerbang Utama: Kalo belum login (gak ada cookie role), tendang ke /login
+  if (!isAuthenticated) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
