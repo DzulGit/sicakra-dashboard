@@ -2,19 +2,21 @@
 
 import React, { useState } from "react";
 import { cn } from "@/lib/utils";
-import { ArrowUpDown, Clock, CheckCircle2, Key, Copy, Check, Loader2, MapPin } from "lucide-react";
+import { ArrowUpDown, Clock, CheckCircle2, Key, Copy, Check, Loader2, MapPin, Eye } from "lucide-react";
 
 interface TasksTableProps {
   tasks: any[];
   actionId: string | null;
   onCompleteTask: (id: string, e?: React.MouseEvent) => void;
-  onSelectTask: (task: any) => void; // 🔥 Tambah ini
+  onSelectTask: (task: any) => void;
 }
 
 export function TasksTable({ tasks, actionId, onCompleteTask, onSelectTask }: TasksTableProps) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  const handleCopyToken = (token: string, taskId: string) => {
+  // 🔥 Tambahin event (e) biar klik copy gak ngebuka panel
+  const handleCopyToken = (e: React.MouseEvent, token: string, taskId: string) => {
+    e.stopPropagation(); 
     navigator.clipboard.writeText(token);
     setCopiedId(taskId);
     setTimeout(() => setCopiedId(null), 2000);
@@ -46,17 +48,24 @@ export function TasksTable({ tasks, actionId, onCompleteTask, onSelectTask }: Ta
                   <tr
                     key={task.id}
                     onClick={() => onSelectTask(task)}
-                    className="border-b border-border last:border-0 hover:bg-secondary/30 transition-colors duration-150 animate-in fade-in slide-in-from-left-2"
+                    // 🔥 Tambahin class "group" biar kita bisa bikin efek hover ke elemen di dalamnya
+                    className="group border-b border-border last:border-0 hover:bg-secondary/40 transition-colors duration-200 cursor-pointer animate-in fade-in"
                     style={{ animationDelay: `${index * 50}ms`, animationFillMode: "both" }}
                   >
                     {/* Kolom 1: Pelanggan */}
                     <td className="py-4 px-4 align-top">
                       <div className="flex items-start gap-3">
-                        <div className="w-8 h-8 mt-1 rounded-md bg-secondary flex items-center justify-center text-xs font-bold text-muted-foreground uppercase border border-border">
+                        <div className="w-8 h-8 mt-1 rounded-md bg-secondary flex items-center justify-center text-xs font-bold text-muted-foreground uppercase border border-border group-hover:bg-accent/10 group-hover:text-accent group-hover:border-accent/30 transition-colors">
                           {task.fullName.charAt(0)}
                         </div>
                         <div>
-                          <p className="text-sm font-bold text-foreground capitalize">{task.fullName}</p>
+                          {/* 🔥 SOLUSI UX: Munculin lencana "Lihat Detail" pas di-hover */}
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm font-bold text-foreground capitalize group-hover:text-accent transition-colors">{task.fullName}</p>
+                            <span className="opacity-0 group-hover:opacity-100 transition-all text-[10px] bg-accent/10 text-accent px-1.5 py-0.5 rounded flex items-center gap-1 font-semibold translate-x-[-10px] group-hover:translate-x-0">
+                              <Eye className="w-3 h-3" /> Detail
+                            </span>
+                          </div>
                           <p className="text-xs font-mono text-muted-foreground mt-0.5">ID: {task.id.substring(0, 8).toUpperCase()}</p>
                           <p className="text-xs text-muted-foreground mt-0.5">{task.phone}</p>
                         </div>
@@ -97,8 +106,8 @@ export function TasksTable({ tasks, actionId, onCompleteTask, onSelectTask }: Ta
                     <td className="py-4 px-4 align-top">
                       <div className={cn(
                         "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold border",
-                        isCompleted
-                          ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                        isCompleted 
+                          ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" 
                           : "bg-amber-500/10 text-amber-500 border-amber-500/20"
                       )}>
                         {isCompleted ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
@@ -115,8 +124,8 @@ export function TasksTable({ tasks, actionId, onCompleteTask, onSelectTask }: Ta
                           </span>
                           {task.accessToken && (
                             <button
-                              onClick={() => handleCopyToken(task.accessToken, task.id)}
-                              className="p-1.5 rounded-md bg-secondary text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition-colors border border-border"
+                              onClick={(e) => handleCopyToken(e, task.accessToken, task.id)}
+                              className="relative z-10 p-1.5 rounded-md bg-secondary text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition-colors border border-border"
                               title="Salin Token"
                             >
                               {copiedId === task.id ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
@@ -125,11 +134,14 @@ export function TasksTable({ tasks, actionId, onCompleteTask, onSelectTask }: Ta
                         </div>
                       ) : (
                         <button
+                          // 🔥 SOLUSI TOMBOL TUNTASKAN: e.preventDefault() ngunci klik biar gak nyebar!
                           onClick={(e) => {
-                            e.stopPropagation(); // 🔥 Jaga biar baris tabel ga ikut ke-klik
+                            e.preventDefault();
+                            e.stopPropagation();
                             onCompleteTask(task.id, e);
                           }}
-                          className="inline-flex items-center justify-center gap-2 h-8 px-3 rounded-md bg-primary text-primary-foreground text-xs font-bold hover:opacity-90 transition-all disabled:opacity-50"
+                          disabled={actionId === task.id}
+                          className="relative z-10 inline-flex items-center justify-center gap-2 h-8 px-3 rounded-md bg-primary text-primary-foreground text-xs font-bold hover:opacity-90 transition-all disabled:opacity-50"
                         >
                           {actionId === task.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Key className="w-3.5 h-3.5" />}
                           Tuntaskan
@@ -148,18 +160,6 @@ export function TasksTable({ tasks, actionId, onCompleteTask, onSelectTask }: Ta
             )}
           </tbody>
         </table>
-      </div>
-
-      {/* Pagination Footer */}
-      <div className="flex items-center justify-between px-4 py-3 border-t border-border bg-secondary/20">
-        <span className="text-xs text-muted-foreground font-medium">
-          Menampilkan {tasks.length} data tugas
-        </span>
-        <div className="flex items-center gap-2">
-          <button className="px-3 py-1.5 rounded-md border border-border text-xs text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors">Previous</button>
-          <button className="px-3 py-1.5 rounded-md bg-accent text-accent-foreground text-xs font-bold shadow-sm">1</button>
-          <button className="px-3 py-1.5 rounded-md border border-border text-xs text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors">Next</button>
-        </div>
       </div>
     </div>
   );
