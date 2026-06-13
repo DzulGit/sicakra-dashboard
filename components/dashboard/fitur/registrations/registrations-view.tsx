@@ -110,9 +110,10 @@ export function RegistrationsView() {
               className="pl-10 w-[280px] bg-secondary border-border focus:border-accent"
             />
           </div>
+          {/* UBAH ARRAY FILTERNYA JADI BEGINI: */}
           <div className="flex items-center gap-2">
             <Filter className="w-4 h-4 text-muted-foreground" />
-            {["PENDING", "APPROVED", "REJECTED"].map((status) => (
+            {["PENDING", "ASSIGNED", "REJECTED"].map((status) => (
               <Button
                 key={status}
                 variant={selectedStatus === status ? "default" : "outline"}
@@ -120,7 +121,8 @@ export function RegistrationsView() {
                 onClick={() => setSelectedStatus(selectedStatus === status ? null : status)}
                 className={selectedStatus === status ? "bg-accent text-accent-foreground" : "bg-transparent border-border"}
               >
-                {status}
+                {/* Biar teks tombolnya lebih enak dibaca operasional: */}
+                {status === "ASSIGNED" ? "ASSIGNED (DIJADWALKAN)" : status}
               </Button>
             ))}
           </div>

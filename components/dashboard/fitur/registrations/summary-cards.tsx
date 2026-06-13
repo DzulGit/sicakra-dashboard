@@ -12,13 +12,18 @@ interface SummaryCardsProps {
 export function SummaryCards({ data }: SummaryCardsProps) {
   const total = data.length;
   const pending = data.filter((r) => r.status === "PENDING").length;
-  const approved = data.filter((r) => r.status === "APPROVED").length;
+
+  const assigned = data.filter((r) => r.status === "ASSIGNED" || r.status === "COMPLETED").length; 
+  
   const rejected = data.filter((r) => r.status === "REJECTED").length;
 
   const stats = [
     { label: "Total Registrasi", value: total.toString(), icon: ClipboardList, color: "text-foreground" },
     { label: "Menunggu Validasi", value: pending.toString(), icon: Loader2, color: "text-accent" },
-    { label: "Disetujui (Approved)", value: approved.toString(), icon: "text-accent", isApprovedIcon: true },
+    
+    // 🔥 UBAH LABELNYA JUGA BIAR PAS:
+    { label: "Disetujui & Dijadwalkan", value: assigned.toString(), icon: "text-accent", isApprovedIcon: true },
+    
     { label: "Ditolak (Rejected)", value: rejected.toString(), icon: XCircle, color: "text-destructive" },
   ];
 
