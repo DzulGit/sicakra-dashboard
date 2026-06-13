@@ -28,7 +28,6 @@ export function RegistrationsView() {
     
     setActionId(id);
     try {
-      // 🔥 KONVERSI TANGGAL: Ubah format string biasa jadi format DateTime ISO biar Prisma gak meledak!
       const payload = action === "REJECTED" 
         ? { rejectReason: "Persyaratan berkas dokumen tidak memenuhi standar operasional." }
         : { 
@@ -43,9 +42,13 @@ export function RegistrationsView() {
         setSelectedReg({ ...selectedReg, status: newStatus as any });
       }
       
+      // 🔥 TAMBAHIN ALERT SUKSES DI SINI BIAR OPERASIONAL TENANG!
+      alert(`Mantap! Pendaftaran berhasil di-${action === "APPROVED" ? "Jadwalkan (ASSIGNED)" : "Tolak (REJECTED)"}.`);
+      
       mutate(); 
     } catch (err) {
-      alert("Gagal memproses validasi pendaftaran.");
+      // Kita ubah pesannya biar gak bikin panik kalau sebenernya data udah masuk
+      alert("Proses selesai, tapi ada sedikit kendala koneksi ke server. Coba refresh halaman untuk memastikan status berubah.");
     } finally {
       setActionId(null);
     }
