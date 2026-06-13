@@ -8,16 +8,20 @@ import {
   Mail, Briefcase, CreditCard, Building2, Home, Maximize2, Minimize2, Check, X, Loader2, MessageSquare
 } from "lucide-react";
 import { Registration } from "@/lib/registrations";
+import { Input } from "@/components/ui/input";
 
 interface RegistrationDetailPanelProps {
   registration: Registration;
   actionId: string | null;
   onClose: () => void;
-  onValidate: (id: string, action: "APPROVED" | "REJECTED") => void;
+  onValidate: (id: string, action: "APPROVED" | "REJECTED", payload?: any) => void;
 }
 
 export function RegistrationDetailPanel({ registration, actionId, onClose, onValidate }: RegistrationDetailPanelProps) {
   const [isMapExpanded, setIsMapExpanded] = useState(false);
+  const [isApproving, setIsApproving] = useState(false);
+  const [surveyDate, setSurveyDate] = useState("");
+  const [surveyTime, setSurveyTime] = useState("");
   const isProcessing = actionId === registration.id;
 
   const formattedPrice = registration.package?.price 
@@ -256,20 +260,42 @@ export function RegistrationDetailPanel({ registration, actionId, onClose, onVal
 
         {/* PANEL TOMBOL VALIDASI */}
         {registration.status === "PENDING" && (
-          <div className="flex items-center gap-4 pt-4 border-t border-border">
-            {!isProcessing ? (
-              <>
-                <Button onClick={() => onValidate(registration.id, "APPROVED")} variant="outline" className="flex-1 h-11 border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/10 font-bold text-sm bg-transparent transition-all">
-                  <Check className="w-4 h-4 mr-2" /> Setujui Berkas & Validasi Registrasi (Approve)
+          <div className="pt-4 border-t border-border mt-6">
+            {isApproving ? (
+              // TAMPILAN FORM JADWAL (MUNCUL PAS KLIK APPROVE)
+              <div className="bg-emerald-500/10 border border-emerald-500/30 p-5 rounded-xl space-y-4 animate-in slide-in-from-bottom-2">
+                <h4 className="font-bold text-sm text-emerald-500 border-b border-emerald-500/20 pb-2">Tentukan Jadwal Teknisi</h4>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="flex-1 space-y-1.5">
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Tanggal</label>
+                    <Input type="date" value={surveyDate} onChange={(e) => setSurveyDate(e.target.value)} className="bg-card border-emerald-500/30" />
+                  </div>
+                  <div className="flex-1 space-y-1.5">
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Jam</label>
+                    <Input type="time" value={surveyTime} onChange={(e) => setSurveyTime(e.target.value)} className="bg-card border-emerald-500/30" />
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 pt-2">
+                  <Button 
+                    onClick={() => onValidate(registration.id, "APPROVED", { surveyDate, surveyTime })} 
+                    disabled={isProcessing || !surveyDate || !surveyTime} 
+                    className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold"
+                  >
+                    {isProcessing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Check className="w-4 h-4 mr-2" />} Kirim Jadwal & Tugaskan
+                  </Button>
+                  <Button onClick={() => setIsApproving(false)} disabled={isProcessing} variant="outline" className="px-6 border-border bg-card">Batal</Button>
+                </div>
+              </div>
+            ) : (
+              // TAMPILAN TOMBOL DEFAULT
+              <div className="flex items-center gap-4">
+                <Button onClick={() => setIsApproving(true)} variant="outline" className="flex-1 h-11 border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/10 font-bold text-sm bg-transparent transition-all">
+                  <Check className="w-4 h-4 mr-2" /> Setujui Berkas & Jadwalkan Teknisi
                 </Button>
                 <Button onClick={() => onValidate(registration.id, "REJECTED")} variant="outline" className="flex-1 h-11 border-rose-500/30 text-rose-500 hover:bg-rose-500/10 font-bold text-sm bg-transparent transition-all">
-                  <X className="w-4 h-4 mr-2" /> Tolak Berkas Registrasi (Reject)
+                  <X className="w-4 h-4 mr-2" /> Tolak Berkas Registrasi
                 </Button>
-              </>
-            ) : (
-              <Button disabled className="w-full h-11 bg-muted text-muted-foreground font-semibold text-sm">
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Menyelaraskan basis data utama server...
-              </Button>
+              </div>
             )}
           </div>
         )}
