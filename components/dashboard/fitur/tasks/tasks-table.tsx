@@ -7,10 +7,11 @@ import { ArrowUpDown, Clock, CheckCircle2, Key, Copy, Check, Loader2, MapPin } f
 interface TasksTableProps {
   tasks: any[];
   actionId: string | null;
-  onCompleteTask: (id: string) => void;
+  onCompleteTask: (id: string, e?: React.MouseEvent) => void;
+  onSelectTask: (task: any) => void; // 🔥 Tambah ini
 }
 
-export function TasksTable({ tasks, actionId, onCompleteTask }: TasksTableProps) {
+export function TasksTable({ tasks, actionId, onCompleteTask, onSelectTask }: TasksTableProps) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const handleCopyToken = (token: string, taskId: string) => {
@@ -44,6 +45,7 @@ export function TasksTable({ tasks, actionId, onCompleteTask }: TasksTableProps)
                 return (
                   <tr
                     key={task.id}
+                    onClick={() => onSelectTask(task)}
                     className="border-b border-border last:border-0 hover:bg-secondary/30 transition-colors duration-150 animate-in fade-in slide-in-from-left-2"
                     style={{ animationDelay: `${index * 50}ms`, animationFillMode: "both" }}
                   >
@@ -95,8 +97,8 @@ export function TasksTable({ tasks, actionId, onCompleteTask }: TasksTableProps)
                     <td className="py-4 px-4 align-top">
                       <div className={cn(
                         "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold border",
-                        isCompleted 
-                          ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" 
+                        isCompleted
+                          ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
                           : "bg-amber-500/10 text-amber-500 border-amber-500/20"
                       )}>
                         {isCompleted ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
@@ -123,8 +125,10 @@ export function TasksTable({ tasks, actionId, onCompleteTask }: TasksTableProps)
                         </div>
                       ) : (
                         <button
-                          onClick={() => onCompleteTask(task.id)}
-                          disabled={actionId === task.id}
+                          onClick={(e) => {
+                            e.stopPropagation(); // 🔥 Jaga biar baris tabel ga ikut ke-klik
+                            onCompleteTask(task.id, e);
+                          }}
                           className="inline-flex items-center justify-center gap-2 h-8 px-3 rounded-md bg-primary text-primary-foreground text-xs font-bold hover:opacity-90 transition-all disabled:opacity-50"
                         >
                           {actionId === task.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Key className="w-3.5 h-3.5" />}

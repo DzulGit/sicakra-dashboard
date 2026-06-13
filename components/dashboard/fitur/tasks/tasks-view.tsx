@@ -4,38 +4,46 @@ import React, { useState } from "react";
 import useSWR from "swr";
 import { Loader2 } from "lucide-react";
 
-// Impor komponen pecahan yang udah kita buat di atas
+// Import komponen-komponen lu
 import { TasksHeader } from "./tasks-header";
-import { TasksTable } from "./tasks-table";
+import { TasksTable } from "./tasks-table"; // 👉 Pastikan lu pake task-table atau tasks-table (sesuai nama file lu ya)
+import { TaskDetailPanel } from "./tasks-detail-panel"; // 👉 Pake 's' karena nama file lu tasks-detail-panel.tsx
 import { fetchTasks, completeTaskAndGenerateToken, Task } from "@/lib/tasks";
 
 export function TicketsView() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFilter, setSelectedFilter] = useState<string>("all");
   const [actionId, setActionId] = useState<string | null>(null);
+  
+  // State buat Slide-Over Detail
+  const [selectedTask, setSelectedTask] = useState<any>(null); 
 
-  // FETCH DATA: Ambil data dari API
-  const { data: tasks, error, isLoading, mutate } = useSWR(
-    'tasksList',
-    () => fetchTasks() // Pastikan fetchTasks di lib lu me-request data dengan status ASSIGNED & COMPLETED
-  );
+  const { data: tasks, error, isLoading, mutate } = useSWR('tasksList', () => fetchTasks());
 
-  // FUNGSI UTAMA TEKNISI (Selesaikan Pemasangan & Buat Akun)
-  const handleCompleteTask = async (id: string) => {
+  const handleCompleteTask = async (id: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation(); 
     if (!confirm("Konfirmasi: Apakah instalasi jaringan di lokasi pelanggan ini sudah selesai dan menyala?")) return;
     
     setActionId(id);
-    const isSuccess = await completeTaskAndGenerateToken(id);
-    if (isSuccess) {
-      alert("Instalasi Selesai! Akun pelanggan berhasil dibuat.");
-      mutate(); 
-    } else {
-      alert("Gagal memproses penyelesaian tugas. Cek koneksi server.");
+    try {
+      const isSuccess = await completeTaskAndGenerateToken(id);
+      if (isSuccess) {
+        alert("Instalasi Selesai! Token berhasil dibuat.");
+        mutate(); 
+        
+        if (selectedTask && selectedTask.id === id) {
+          setSelectedTask({ ...selectedTask, status: "COMPLETED", accessToken: "MEMUAT..." });
+        }
+      } else {
+        alert("Gagal memproses penyelesaian tugas. Cek koneksi server.");
+      }
+    } catch (err) {
+      alert("Terjadi kendala sistem! Gagal menyelesaikan tugas.");
+    } finally {
+      setActionId(null); 
     }
-    setActionId(null);
   };
 
-  // State Loading & Error
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center h-80 text-muted-foreground space-y-3">
@@ -60,29 +68,35 @@ export function TicketsView() {
       task.id.toLowerCase().includes(searchQuery.toLowerCase());
     
     const matchesFilter = selectedFilter === "all" || task.status === selectedFilter;
-    
-    // Jangan tampilkan PENDING atau REJECTED di halaman tugas teknisi
     const isValidRoleStatus = task.status === "ASSIGNED" || task.status === "COMPLETED";
 
     return matchesSearch && matchesFilter && isValidRoleStatus;
   });
 
+  // RENDER CONDITIONAL PANEL SLIDE-OVER
+  if (selectedTask) {
+    return (
+      <TaskDetailPanel 
+        task={selectedTask}
+        actionId={actionId}
+        onClose={() => setSelectedTask(null)}
+        onComplete={handleCompleteTask}
+      />
+    );
+  }
+
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
-      {/* 1. Komponen Header & Filter */}
       <TasksHeader 
-        searchQuery={searchQuery} 
-        setSearchQuery={setSearchQuery}
-        selectedFilter={selectedFilter}
-        setSelectedFilter={setSelectedFilter}
+        searchQuery={searchQuery} setSearchQuery={setSearchQuery}
+        selectedFilter={selectedFilter} setSelectedFilter={setSelectedFilter}
       />
-
-      {/* 2. Komponen Tabel Utama */}
       <TasksTable 
         tasks={filteredTasks} 
         actionId={actionId} 
-        onCompleteTask={handleCompleteTask} 
+        onCompleteTask={handleCompleteTask}
+        onSelectTask={setSelectedTask} 
       />
     </div>
   );
-}
+}   
