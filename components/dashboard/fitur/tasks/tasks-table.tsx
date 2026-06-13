@@ -2,19 +2,18 @@
 
 import React, { useState } from "react";
 import { cn } from "@/lib/utils";
-import { ArrowUpDown, Clock, CheckCircle2, Key, Copy, Check, Loader2, MapPin, Eye } from "lucide-react";
+import { ArrowUpDown, Clock, CheckCircle2, Copy, Check, MapPin, Eye, ChevronRight } from "lucide-react";
 
 interface TasksTableProps {
   tasks: any[];
   actionId: string | null;
-  onCompleteTask: (id: string, e?: React.MouseEvent) => void;
+  onCompleteTask: (id: string, e?: React.MouseEvent) => void; // Biarin aja biar typescript di view ga eror
   onSelectTask: (task: any) => void;
 }
 
-export function TasksTable({ tasks, actionId, onCompleteTask, onSelectTask }: TasksTableProps) {
+export function TasksTable({ tasks, onSelectTask }: TasksTableProps) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  // 🔥 Tambahin event (e) biar klik copy gak ngebuka panel
   const handleCopyToken = (e: React.MouseEvent, token: string, taskId: string) => {
     e.stopPropagation(); 
     navigator.clipboard.writeText(token);
@@ -37,7 +36,7 @@ export function TasksTable({ tasks, actionId, onCompleteTask, onSelectTask }: Ta
               <th className="py-3 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Paket Layanan</th>
               <th className="py-3 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Jadwal Survey</th>
               <th className="py-3 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</th>
-              <th className="py-3 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider text-right">Aksi / Token</th>
+              <th className="py-3 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider text-right">Aksi</th>
             </tr>
           </thead>
           <tbody>
@@ -48,24 +47,17 @@ export function TasksTable({ tasks, actionId, onCompleteTask, onSelectTask }: Ta
                   <tr
                     key={task.id}
                     onClick={() => onSelectTask(task)}
-                    // 🔥 Tambahin class "group" biar kita bisa bikin efek hover ke elemen di dalamnya
                     className="group border-b border-border last:border-0 hover:bg-secondary/40 transition-colors duration-200 cursor-pointer animate-in fade-in"
                     style={{ animationDelay: `${index * 50}ms`, animationFillMode: "both" }}
                   >
                     {/* Kolom 1: Pelanggan */}
                     <td className="py-4 px-4 align-top">
                       <div className="flex items-start gap-3">
-                        <div className="w-8 h-8 mt-1 rounded-md bg-secondary flex items-center justify-center text-xs font-bold text-muted-foreground uppercase border border-border group-hover:bg-accent/10 group-hover:text-accent group-hover:border-accent/30 transition-colors">
+                        <div className="w-8 h-8 mt-1 rounded-md bg-secondary flex items-center justify-center text-xs font-bold text-muted-foreground uppercase border border-border group-hover:bg-accent/10 group-hover:text-accent transition-colors">
                           {task.fullName.charAt(0)}
                         </div>
                         <div>
-                          {/* 🔥 SOLUSI UX: Munculin lencana "Lihat Detail" pas di-hover */}
-                          <div className="flex items-center gap-2">
-                            <p className="text-sm font-bold text-foreground capitalize group-hover:text-accent transition-colors">{task.fullName}</p>
-                            <span className="opacity-0 group-hover:opacity-100 transition-all text-[10px] bg-accent/10 text-accent px-1.5 py-0.5 rounded flex items-center gap-1 font-semibold translate-x-[-10px] group-hover:translate-x-0">
-                              <Eye className="w-3 h-3" /> Detail
-                            </span>
-                          </div>
+                          <p className="text-sm font-bold text-foreground capitalize group-hover:text-accent transition-colors">{task.fullName}</p>
                           <p className="text-xs font-mono text-muted-foreground mt-0.5">ID: {task.id.substring(0, 8).toUpperCase()}</p>
                           <p className="text-xs text-muted-foreground mt-0.5">{task.phone}</p>
                         </div>
@@ -115,7 +107,7 @@ export function TasksTable({ tasks, actionId, onCompleteTask, onSelectTask }: Ta
                       </div>
                     </td>
 
-                    {/* Kolom 6: Action Button / Token Display */}
+                    {/* 🔥 Kolom 6: Action Button (Dirombak Total Sesuai UX Baru) */}
                     <td className="py-4 px-4 align-top text-right">
                       {isCompleted || task.accessToken ? (
                         <div className="flex items-center justify-end gap-2">
@@ -133,18 +125,17 @@ export function TasksTable({ tasks, actionId, onCompleteTask, onSelectTask }: Ta
                           )}
                         </div>
                       ) : (
+                        // 🔥 TOMBOL BARU: Buka Panel Detail
                         <button
-                          // 🔥 SOLUSI TOMBOL TUNTASKAN: e.preventDefault() ngunci klik biar gak nyebar!
                           onClick={(e) => {
-                            e.preventDefault();
                             e.stopPropagation();
-                            onCompleteTask(task.id, e);
+                            onSelectTask(task); // Membuka panel slide-over
                           }}
-                          disabled={actionId === task.id}
-                          className="relative z-10 inline-flex items-center justify-center gap-2 h-8 px-3 rounded-md bg-primary text-primary-foreground text-xs font-bold hover:opacity-90 transition-all disabled:opacity-50"
+                          className="relative z-10 inline-flex items-center justify-center gap-1.5 h-8 px-3 rounded-md bg-secondary border border-border text-foreground text-xs font-bold hover:bg-accent hover:text-accent-foreground hover:border-accent transition-all"
                         >
-                          {actionId === task.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Key className="w-3.5 h-3.5" />}
-                          Tuntaskan
+                          <Eye className="w-3.5 h-3.5" />
+                          Detail & Eksekusi
+                          <ChevronRight className="w-3 h-3 ml-0.5 opacity-50" />
                         </button>
                       )}
                     </td>
