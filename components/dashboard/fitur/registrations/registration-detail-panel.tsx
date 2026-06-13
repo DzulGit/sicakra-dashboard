@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 interface RegistrationDetailPanelProps {
   registration: Registration;
   actionId: string | null;
-  onClose: () => void;
+  onClose: () => void;  
   onValidate: (id: string, action: "APPROVED" | "REJECTED", payload?: any) => void;
 }
 

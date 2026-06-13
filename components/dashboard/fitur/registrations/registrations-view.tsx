@@ -22,29 +22,30 @@ export function RegistrationsView() {
     () => fetchRegistrations() 
   );
 
-  const handleValidate = async (id: string, action: "APPROVED" | "REJECTED") => {
-    if (!confirm(`Konfirmasi penentuan status operasional menjadi ${action}?`)) return;
+  // 🔥 TAMBAHIN payloadData?: any DI DALAM KURUNG INI BANG:
+  const handleValidate = async (id: string, action: "APPROVED" | "REJECTED", payloadData?: any) => {
+    if (action === "REJECTED" && !confirm(`Konfirmasi penolakan berkas?`)) return;
     
     setActionId(id);
     try {
-      // 🔥 SESUAIKAN DTO: Backend lu minta { surveyDate, surveyTime } buat assign, dan { rejectReason } buat reject
+      // 🔥 KONVERSI TANGGAL: Ubah format string biasa jadi format DateTime ISO biar Prisma gak meledak!
       const payload = action === "REJECTED" 
         ? { rejectReason: "Persyaratan berkas dokumen tidak memenuhi standar operasional." }
-        : { surveyDate: "TBD", surveyTime: "TBD" }; // Bisa lu ganti "Menunggu Konfirmasi" atau "TBD"
+        : { 
+            surveyDate: payloadData?.surveyDate ? new Date(payloadData.surveyDate).toISOString() : null, 
+            surveyTime: payloadData?.surveyTime 
+          }; 
         
-      // Panggil fungsi API yang baru
       await processRegistration(id, action, payload);
       
-      // Update state realtime UI-nya
       if (selectedReg && selectedReg.id === id) {
-        // Karena endpoint /assign mengubah jadi ASSIGNED, kita pantulkan di UI juga
         const newStatus = action === "APPROVED" ? "ASSIGNED" : "REJECTED";
-        setSelectedReg({ ...selectedReg, status: newStatus });
+        setSelectedReg({ ...selectedReg, status: newStatus as any });
       }
       
-      mutate(); // Refresh tabel SWR
+      mutate(); 
     } catch (err) {
-      alert("Gagal memproses validasi pendaftaran. Cek koneksi atau token.");
+      alert("Gagal memproses validasi pendaftaran.");
     } finally {
       setActionId(null);
     }
