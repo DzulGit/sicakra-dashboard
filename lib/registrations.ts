@@ -30,7 +30,7 @@ export interface Registration {
   notes?: string;
   ktpPhotoUrl?: string;
   housePhotoUrl?: string;
-  status: "PENDING" | "APPROVED" | "REJECTED";
+  status: "PENDING" | "APPROVED" | "REJECTED" | "ASSIGNED" | "COMPLETED";
   rejectReason?: string;
   createdAt: string;
 }
@@ -71,22 +71,24 @@ export async function fetchRegistrations(status?: string): Promise<Registration[
   }
 }
 
-// 🔥 HAPUS PARAMETER TOKEN JUGA DI SINI
-export async function processRegistration(
-  id: string, 
-  data: { status: "APPROVED" | "REJECTED"; rejectReason?: string; surveyDate?: string; surveyTime?: string }
-): Promise<Registration | null> {
-  const res = await fetch(`${API_URL}/${id}/process`, {
-    method: "PATCH", 
-    headers: { 
+// Tambahkan parameter 'action' di fungsinya
+export async function processRegistration(id: string, action: "APPROVED" | "REJECTED", data: any) {
+  // 🔥 AUTO SWITCH ROUTE: Kalo disetujui lari ke /assign, kalo ditolak lari ke /reject
+  const route = action === "APPROVED" ? "assign" : "reject";
+  const endpoint = `${process.env.NEXT_PUBLIC_API_URL}/registrations/${id}/${route}`;
+
+  const res = await fetch(endpoint, {
+    method: "PATCH", // Backend lu pake @Patch, udah bener!
+    headers: {
       "Content-Type": "application/json",
     },
-    // ⚡ Wajib include credentials juga pas nge-post aksi
     credentials: "include",
     body: JSON.stringify(data),
   });
+
+  if (!res.ok) {
+    throw new Error(`HTTP Error: ${res.status}`);
+  }
   
-  if (!res.ok) throw new Error("Gagal memproses pendaftaran");
-  const text = await res.text();
-  return text ? JSON.parse(text) : null;
+  return res.json();
 }

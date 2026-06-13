@@ -27,19 +27,24 @@ export function RegistrationsView() {
     
     setActionId(id);
     try {
-      const data = action === "REJECTED" 
-        ? { status: action, rejectReason: "Persyaratan berkas dokumen tidak memenuhi standar operasional." }
-        : { status: action, surveyDate: "-", surveyTime: "-" }; 
+      // 🔥 SESUAIKAN DTO: Backend lu minta { surveyDate, surveyTime } buat assign, dan { rejectReason } buat reject
+      const payload = action === "REJECTED" 
+        ? { rejectReason: "Persyaratan berkas dokumen tidak memenuhi standar operasional." }
+        : { surveyDate: "TBD", surveyTime: "TBD" }; // Bisa lu ganti "Menunggu Konfirmasi" atau "TBD"
         
-      await processRegistration(id, data);
+      // Panggil fungsi API yang baru
+      await processRegistration(id, action, payload);
       
+      // Update state realtime UI-nya
       if (selectedReg && selectedReg.id === id) {
-        setSelectedReg({ ...selectedReg, status: action });
+        // Karena endpoint /assign mengubah jadi ASSIGNED, kita pantulkan di UI juga
+        const newStatus = action === "APPROVED" ? "ASSIGNED" : "REJECTED";
+        setSelectedReg({ ...selectedReg, status: newStatus });
       }
       
-      mutate(); 
+      mutate(); // Refresh tabel SWR
     } catch (err) {
-      alert("Gagal memproses validasi pendaftaran.");
+      alert("Gagal memproses validasi pendaftaran. Cek koneksi atau token.");
     } finally {
       setActionId(null);
     }
