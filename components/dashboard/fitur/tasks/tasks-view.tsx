@@ -21,12 +21,18 @@ export function TicketsView() {
   const { data: tasks, error, isLoading, mutate } = useSWR('tasksList', () => fetchTasks());
 
   const handleCompleteTask = async (id: string, e?: React.MouseEvent) => {
-    if (e) e.stopPropagation(); 
-    if (!confirm("Konfirmasi: Apakah instalasi jaringan di lokasi pelanggan ini sudah selesai dan menyala?")) return;
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    console.log("[DEBUG 1] Tombol Detail Panel diklik. ID Task:", id);
     
     setActionId(id);
     try {
       const isSuccess = await completeTaskAndGenerateToken(id);
+      console.log("[DEBUG 5] Hasil return isSuccess:", isSuccess);
+
       if (isSuccess) {
         alert("Instalasi Selesai! Token berhasil dibuat.");
         mutate(); 
@@ -35,9 +41,10 @@ export function TicketsView() {
           setSelectedTask({ ...selectedTask, status: "COMPLETED", accessToken: "MEMUAT..." });
         }
       } else {
-        alert("Gagal memproses penyelesaian tugas. Cek koneksi server.");
+        alert("Gagal memproses penyelesaian tugas. Periksa konsol untuk detail error.");
       }
     } catch (err) {
+      console.error("[DEBUG FATAL] Terjadi error di dalam handleCompleteTask:", err);
       alert("Terjadi kendala sistem! Gagal menyelesaikan tugas.");
     } finally {
       setActionId(null); 

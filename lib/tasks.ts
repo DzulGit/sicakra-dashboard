@@ -40,15 +40,28 @@ export async function fetchTasks(): Promise<Task[]> {
 
 // 2. Kirim sinyal penyelesaian instalasi ke endpoint POST /registrations/:id/complete
 export async function completeTaskAndGenerateToken(id: string): Promise<boolean> {
+  console.log("[DEBUG 2] Mulai eksekusi completeTaskAndGenerateToken...");
   try {
-    const res = await fetch(`${API_URL}/${id}/complete`, {
+    const targetUrl = `${API_URL}/${id}/complete`;
+    console.log("[DEBUG 3] URL Target Fetch:", targetUrl);
+
+    const res = await fetch(targetUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
     });
+
+    console.log("[DEBUG 4] Fetch selesai. HTTP Status:", res.status);
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("[DEBUG ERROR] Pesan dari backend:", errorText);
+    }
+
     return res.ok;
   } catch (error) {
-    console.error("Error menyelesaikan tugas pemasangan:", error);
+    console.error("[DEBUG CATCH] Gagal melakukan request ke jaringan:", error);
     return false;
   }
 }
+
