@@ -26,25 +26,28 @@ export function TicketsView() {
       e.stopPropagation();
     }
     
-    console.log("[DEBUG 1] Tombol Detail Panel diklik. ID Task:", id);
-    
     setActionId(id);
     try {
       const isSuccess = await completeTaskAndGenerateToken(id);
-      console.log("[DEBUG 5] Hasil return isSuccess:", isSuccess);
 
       if (isSuccess) {
-        alert("Instalasi Selesai! Token berhasil dibuat.");
+        alert("Instalasi Selesai! Token akun pelanggan berhasil dibuat.");
+        
+        // 🔥 SWR akan otomatis memicu fetch ulang data terbaru dari database
         mutate(); 
         
+        // 🔥 PERBAIKAN: Mengganti tokenOtomatis dengan teks placeholder statis
         if (selectedTask && selectedTask.id === id) {
-          setSelectedTask({ ...selectedTask, status: "COMPLETED", accessToken: "MEMUAT..." });
+          setSelectedTask({ 
+            ...selectedTask, 
+            status: "COMPLETED", 
+            accessToken: "AKTIF (Cek Tabel)" 
+          });
         }
       } else {
         alert("Gagal memproses penyelesaian tugas. Periksa konsol untuk detail error.");
       }
     } catch (err) {
-      console.error("[DEBUG FATAL] Terjadi error di dalam handleCompleteTask:", err);
       alert("Terjadi kendala sistem! Gagal menyelesaikan tugas.");
     } finally {
       setActionId(null); 
