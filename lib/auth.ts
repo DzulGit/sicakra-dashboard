@@ -16,7 +16,7 @@ export function saveAuth(admin: AdminInfo) {
   // Save non-sensitive profile info for client use.
   try {
     localStorage.setItem(ADMIN_KEY, JSON.stringify(admin));
-    Cookies.set(ROLE_KEY, admin.role.toLowerCase(), { expires: 7, sameSite: 'lax' });
+    Cookies.set(ROLE_KEY, admin.role, { expires: 7, sameSite: 'lax' });
     Cookies.set(NAME_KEY, admin.name, { expires: 7, sameSite: 'lax' });
   } catch (e) {
     // noop
