@@ -1,11 +1,11 @@
-import { LayoutDashboard, Users, Package, Wallet, Wrench, SettingsIcon } from "lucide-react";
+import { LayoutDashboard, Users, Package, Wallet, Wrench, SettingsIcon, Inbox } from "lucide-react";
 import { AdminRole } from "@/types";
 
 export interface NavItem {
   label: string;
   href: string;
   icon: any;
-  allowedRoles: string[]; // Pakai string[] biar gampang match-nya
+  allowedRoles: string[];
 }
 
 const ALL_NAV_ITEMS: NavItem[] = [
@@ -22,6 +22,12 @@ const ALL_NAV_ITEMS: NavItem[] = [
     allowedRoles: ["OPERASIONAL"],
   },
   {
+    label: "Pengajuan Layanan",
+    href: "/requests",
+    icon: Inbox,
+    allowedRoles: ["OPERASIONAL"],
+  },
+  {
     label: "Kelola Paket",
     href: "/packages",
     icon: Package,
@@ -33,14 +39,12 @@ const ALL_NAV_ITEMS: NavItem[] = [
     icon: Wallet,
     allowedRoles: ["KEUANGAN"],
   },
-  // 🔥 INI DIA MENU YANG NGUMPET
   {
     label: "Tugas Lapangan",
     href: "/tasks",
     icon: Wrench,
     allowedRoles: ["TEKNIS"], 
   },
-
   {
     label: "Settings",
     href: "/settings",
