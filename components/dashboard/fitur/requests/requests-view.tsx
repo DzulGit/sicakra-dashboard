@@ -7,11 +7,27 @@ import { Loader2, CheckCircle, XCircle } from "lucide-react";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 export function RequestsView() {
-  // Menggunakan fetch bawaan, sertakan credentials: 'include' untuk kirim cookie JWT
-  const fetcher = (url: string) => fetch(`${API_URL}${url}`, { credentials: 'include' }).then(res => res.json());
+  // Tambahkan handling error agar Fetch melempar error jika res.ok bernilai false
+  const fetcher = async (url: string) => {
+    try {
+      const res = await fetch(`${API_URL}${url}`, { credentials: 'include' });
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error(`🚨 Error API (${res.status}):`, errorText);
+        throw new Error("Gagal mengambil data");
+      }
+      return await res.json();
+    } catch (err) {
+      console.error("🚨 Error Fetcher:", err);
+      throw err;
+    }
+  };
   
   const { data: requests, error, isLoading, mutate } = useSWR('/admin/service-requests', fetcher);
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
+
+  // Fallback pengaman untuk memastikan tipe data adalah Array
+  const requestList = Array.isArray(requests) ? requests : (requests?.data || []);
 
   const handleAction = async (id: string, action: 'approve' | 'reject') => {
     if (!confirm(`Yakin ingin ${action === 'approve' ? 'menyetujui' : 'menolak'} pengajuan ini?`)) return;
@@ -50,10 +66,10 @@ export function RequestsView() {
             </tr>
           </thead>
           <tbody className="divide-y">
-            {(!requests || requests.length === 0) ? (
+            {requestList.length === 0 ? (
               <tr><td colSpan={6} className="px-6 py-8 text-center text-gray-500">Tidak ada pengajuan.</td></tr>
             ) : (
-              requests.map((req: any) => (
+              requestList.map((req: any) => (
                 <tr key={req.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4">
                     <div className="font-semibold text-gray-900">{req.user?.fullName}</div>
