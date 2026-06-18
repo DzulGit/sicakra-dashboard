@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Package, Wallet, Wrench, SettingsIcon, Inbox } from "lucide-react";
+import { LayoutDashboard, Users, Package, Wallet, Wrench, SettingsIcon, Inbox, PlusCircle } from "lucide-react";
 import { AdminRole } from "@/types";
 
 export interface NavItem {
@@ -50,6 +50,12 @@ const ALL_NAV_ITEMS: NavItem[] = [
     href: "/settings",
     icon: SettingsIcon,
     allowedRoles: ["OPERASIONAL", "KEUANGAN", "TEKNIS"],
+  },
+  {
+    label: "Instalasi Tambahan",
+    href: "/installations",
+    icon: PlusCircle,
+    allowedRoles: ["TEKNIS"], 
   },
 ];
 

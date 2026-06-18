@@ -8,6 +8,7 @@ export type Feature =
   | 'tasks'  
   | 'tickets'  
   | 'schedule'  
+  | 'installations'
   | 'settings';
 
 // Central mapping: Siapa boleh akses apa
@@ -20,6 +21,7 @@ export const PERMISSIONS: Record<Feature, AdminRole[]> = {
   tickets:       ['TEKNIS'],  
   schedule:      ['TEKNIS'],  
   settings:      ['OPERASIONAL', 'KEUANGAN', 'TEKNIS'],
+  installations: ['TEKNIS'],
 };
 
 // Fungsi sakti pengecek izin akses
