@@ -1,30 +1,38 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import useSWR from "swr";
-import { InstallationsHeader } from "./installations-header";
-import { InstallationsTable } from "./installations-table";
-import { InstallationsDetailPanel } from "./installations-detail-panel";
-import { fetchAllServiceRequests, completeServiceRequestTask, ServiceRequest } from "@/lib/service-requests";
+import React, { useState } from 'react';
+import useSWR from 'swr';
+import { InstallationsHeader } from './installations-header';
+import { InstallationsTable } from './installations-table';
+import { InstallationsDetailPanel } from './installations-detail-panel';
+import {
+  fetchAllServiceRequests,
+  completeServiceRequestTask,
+  ServiceRequest,
+} from '@/lib/service-requests';
 
 export function InstallationsView() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedFilter, setSelectedFilter] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedFilter, setSelectedFilter] = useState<string>('all');
   const [actionId, setActionId] = useState<string | null>(null);
-  const [selectedTask, setSelectedTask] = useState<any>(null); 
+  const [selectedTask, setSelectedTask] = useState<any>(null);
 
-  const { data: requests, error, mutate } = useSWR('installationsList', () => fetchAllServiceRequests());
+  const {
+    data: requests,
+    error,
+    mutate,
+  } = useSWR('installationsList', () => fetchAllServiceRequests());
 
   const handleCompleteTask = async (id: string) => {
     setActionId(id);
     try {
       const isSuccess = await completeServiceRequestTask(id);
       if (isSuccess) {
-        alert("Instalasi Selesai! Layanan diaktifkan.");
+        alert('Instalasi Selesai! Layanan diaktifkan.');
         mutate();
-        setSelectedTask((prev: any) => ({ ...prev, status: "COMPLETED" }));
+        setSelectedTask((prev: any) => ({ ...prev, status: 'COMPLETED' }));
       } else {
-        alert("Gagal menyelesaikan instalasi. Pastikan backend merespons.");
+        alert('Gagal menyelesaikan instalasi. Pastikan backend merespons.');
       }
     } finally {
       setActionId(null);
@@ -41,23 +49,22 @@ export function InstallationsView() {
 
   // Filter khusus TAMBAH_LANGGANAN yang sudah APPROVED atau COMPLETED
   const filteredTasks = (requests || []).filter((task: ServiceRequest) => {
-    if (task.type !== "TAMBAH_LANGGANAN") return false;
-    
-    const isValidStatus = task.status === "APPROVED" || task.status === "COMPLETED";
-    if (!isValidStatus) return false;
+    // HANYA tampilkan yang statusnya APPROVED (belum dikerjakan)
+    if (task.status !== 'APPROVED') return false;
 
-    const matchesSearch = 
+    const matchesSearch =
       task.user?.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       task.id.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesFilter = selectedFilter === "all" || task.status === selectedFilter;
+
+    const matchesFilter =
+      selectedFilter === 'all' || task.status === selectedFilter;
 
     return matchesSearch && matchesFilter;
   });
 
   if (selectedTask) {
     return (
-      <InstallationsDetailPanel 
+      <InstallationsDetailPanel
         task={selectedTask}
         actionId={actionId}
         onClose={() => setSelectedTask(null)}
@@ -68,12 +75,14 @@ export function InstallationsView() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
-      <InstallationsHeader 
-        searchQuery={searchQuery} setSearchQuery={setSearchQuery}
-        selectedFilter={selectedFilter} setSelectedFilter={setSelectedFilter}
+      <InstallationsHeader
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        selectedFilter={selectedFilter}
+        setSelectedFilter={setSelectedFilter}
       />
-      <InstallationsTable 
-        tasks={filteredTasks} 
+      <InstallationsTable
+        tasks={filteredTasks}
         actionId={actionId}
         onSelectTask={setSelectedTask}
       />
